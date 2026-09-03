@@ -1,0 +1,56 @@
+# deployment/github-actions-scraper.yml
+#
+# Recommended way to satisfy "every day at 5am, look for new scholarships
+# and update the database" without paying for an always-on server process.
+#
+# To use this:
+#   1. Move this file to .github/workflows/scrape-scholarships.yml in your repo
+#      (GitHub only picks up workflows from that exact path).
+#   2. In your GitHub repo settings -> Secrets and variables -> Actions,
+#      add a secret named DATABASE_URL pointing at your PRODUCTION Postgres
+#      database (the same one your deployed Flask app uses), plus
+#      SCHOLARSHIP_API_KEY / SCHOLARSHIP_API_BASE_URL if you've configured
+#      a real source.
+#   3. Commit and push. GitHub will run this automatically on the schedule
+#      below -- no server of yours needs to be running for this to work.
+#
+# IMPORTANT: cron schedules in GitHub Actions are always in UTC, and GitHub
+# explicitly does not guarantee exact-minute execution (jobs can be
+# delayed a few minutes during high load). "0 9 * * *" below is 9:00 UTC,
+# which is 5:00 AM US Eastern Time during Eastern Daylight Time (summer)
+# and 4:00 AM during Eastern Standard Time (winter) -- adjust the hour, or
+# accept the one-hour seasonal drift, based on how precise you need "5am"
+# to be.
+
+name: Scrape scholarships daily
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch: {}   # lets you also trigger it manually from the Actions tab
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        env:
+          FLASK_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          SCHOLARSHIP_API_BASE_URL: ${{ secrets.SCHOLARSHIP_API_BASE_URL }}
+          SCHOLARSHIP_API_KEY: ${{ secrets.SCHOLARSHIP_API_KEY }}
+        run: python -m scraper.run_scraper

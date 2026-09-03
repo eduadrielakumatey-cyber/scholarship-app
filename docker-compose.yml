@@ -1,0 +1,76 @@
+# docker-compose.yml
+#
+# Spins up the whole stack locally with one command:
+#   docker compose up --build
+#
+# Services:
+#   db        -- PostgreSQL, the single source of truth for all data
+#   backend   -- the Flask API (port 5000)
+#   scraper   -- runs scraper/scheduler.py so "every day at 5am" works
+#                automatically as long as this container keeps running.
+#                (See backend/scraper/scheduler.py docstring -- for
+#                production you may prefer a platform Scheduler / GitHub
+#                Actions cron instead of this always-on container.)
+#   frontend  -- the React dev server (port 5173)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: scholar_user
+      POSTGRES_PASSWORD: scholar_pass
+      POSTGRES_DB: scholarship_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scholar_user -d scholarship_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://scholar_user:scholar_pass@db:5432/scholarship_db
+      FLASK_ENV: development
+      SECRET_KEY: dev-secret-key
+      JWT_SECRET_KEY: dev-jwt-secret
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+
+  scraper:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://scholar_user:scholar_pass@db:5432/scholarship_db
+      FLASK_ENV: production
+    command: ["python", "-m", "scraper.scheduler"]
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:5000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

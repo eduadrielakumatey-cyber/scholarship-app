@@ -1,0 +1,68 @@
+"""
+app/models/user.py
+-------------------
+Represents a student account. Holds both login credentials and the profile
+fields (GPA, grade level, state, demographics, interests, major) that the
+matching engine (app/services/matching.py) uses to score scholarships.
+
+Demographics and interests are stored as PostgreSQL ARRAY columns because a
+student can belong to more than one group (e.g. ["first-generation",
+"hispanic"]) and have more than one interest (e.g. ["robotics", "music"]).
+"""
+
+from datetime import datetime
+
+import bcrypt
+from sqlalchemy.dialects.postgresql import ARRAY
+
+from app.extensions import db
+
+
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+
+    # --- Profile fields used directly by the matching engine ---
+    full_name = db.Column(db.String(120), nullable=True)
+    gpa = db.Column(db.Float, nullable=True)                # e.g. 3.75 on a 4.0 scale
+    grade_level = db.Column(db.String(20), nullable=True)    # "12" (HS senior) or "college_1".."college_5plus"
+    state = db.Column(db.String(2), nullable=True)            # USPS abbreviation, e.g. "MD"
+    demographics = db.Column(ARRAY(db.String), default=list)  # e.g. ["first-generation"]
+    interests = db.Column(ARRAY(db.String), default=list)     # e.g. ["robotics", "art"]
+    major = db.Column(db.String(120), nullable=True)          # intended college major
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    interactions = db.relationship(
+        "Interaction", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
+
+    # --- Password helpers ---
+    def set_password(self, raw_password: str) -> None:
+        hashed = bcrypt.hashpw(raw_password.encode("utf-8"), bcrypt.gensalt())
+        self.password_hash = hashed.decode("utf-8")
+
+    def check_password(self, raw_password: str) -> bool:
+        return bcrypt.checkpw(raw_password.encode("utf-8"), self.password_hash.encode("utf-8"))
+
+    def profile_is_complete(self) -> bool:
+        """Used by the frontend to decide whether to show the profile-setup flow."""
+        return all([self.gpa, self.grade_level, self.state, self.major])
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "email": self.email,
+            "full_name": self.full_name,
+            "gpa": self.gpa,
+            "grade_level": self.grade_level,
+            "state": self.state,
+            "demographics": self.demographics or [],
+            "interests": self.interests or [],
+            "major": self.major,
+            "profile_complete": self.profile_is_complete(),
+        }

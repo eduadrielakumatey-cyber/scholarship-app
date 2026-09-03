@@ -1,0 +1,27 @@
+# backend/railway.toml
+#
+# Tells Railway exactly how to build and run this service, instead of
+# relying on auto-detection. Set this service's "Root Directory" to
+# `backend` in the Railway dashboard so this file (and the Dockerfile it
+# points to) is found.
+#
+# Required environment variables (set in the Railway dashboard, not here):
+#   DATABASE_URL     -- reference your Railway Postgres plugin's variable,
+#                        e.g. ${{Postgres.DATABASE_URL}}
+#   FLASK_ENV         production
+#   SECRET_KEY        a long random string (not the dev default)
+#   JWT_SECRET_KEY    a different long random string
+#   CORS_ORIGINS      your Vercel frontend URL(s), comma-separated,
+#                      e.g. https://scholarmatch.vercel.app
+#
+# PORT is injected automatically by Railway -- don't set it yourself.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

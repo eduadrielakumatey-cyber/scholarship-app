@@ -1,0 +1,912 @@
+/* src/index.css */
+
+:root {
+  --color-bg: #1b1b3a;
+  --color-surface: #fafaf7;
+  --color-ink: #232136;
+  --color-ink-soft: #6b6884;
+  --color-on-dark: #f1efe9;
+  --color-on-dark-soft: #a9a6c4;
+  --color-gold: #f2b544;
+  --color-teal: #2ec4b6;
+  --color-coral: #ff6b6b;
+  --color-line: #e4e1d8;
+  /* One real, deliberately-loaded display face (see index.html) for
+     headlines and dollar amounts -- a warm serif fits a scholarship/award
+     product better than another generic startup sans, and gives the app a
+     distinct read from the first screen. Body and numeric text commit to
+     solid system stacks on purpose: fast, native-feeling, no dependency
+     for the parts of the UI where legibility matters more than character. */
+  --font-display: "Libre Franklin", "Segoe UI", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Consolas, monospace;
+  --radius-card: 20px;
+  --max-content-width: 480px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-on-dark);
+  font-family: var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.app-shell {
+  width: 100%;
+  max-width: var(--max-content-width);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px calc(96px + var(--safe-bottom));
+  overflow-y: auto;
+}
+
+.page-title {
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: var(--color-on-dark-soft);
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.brand-accent {
+  color: var(--color-gold);
+}
+
+/* Same perforated-ticket motif as the metrics panel, used as a plain
+   horizontal divider on its own (e.g. the login screen) rather than
+   sitting on the top edge of a specific card -- punch holes read against
+   the page background instead of a cream panel. */
+.ticket-tear--static {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed rgba(255, 255, 255, 0.15);
+  margin: 22px 0;
+}
+
+.ticket-tear--static::before,
+.ticket-tear--static::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-bg);
+}
+
+.ticket-tear--static::before { left: -9px; }
+.ticket-tear--static::after { right: -9px; }
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field-group label {
+  font-size: 0.85rem;
+  color: var(--color-on-dark-soft);
+}
+
+.field-group input,
+.field-group select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-on-dark);
+}
+
+/* The <select> box itself picks up the dark styling above, but its
+   dropdown <option> list is rendered by the OS/browser and ignores that --
+   it falls back to a native white popup while still inheriting the light
+   text color, which reads as white-on-white. Style options explicitly. */
+.field-group select option {
+  background: var(--color-ink);
+  color: var(--color-on-dark);
+}
+
+.field-group input::placeholder {
+  color: var(--color-on-dark-soft);
+}
+
+.field-group input:focus,
+.field-group select:focus {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 1px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-on-dark);
+  border: 1px solid transparent;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--color-gold);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.primary-button {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: none;
+  background: var(--color-gold);
+  color: var(--color-ink);
+  width: 100%;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.text-link-button {
+  background: none;
+  border: none;
+  color: var(--color-teal);
+  font-size: 0.9rem;
+  padding: 8px 0;
+}
+
+.error-text {
+  color: var(--color-coral);
+  font-size: 0.85rem;
+  margin: -8px 0 12px;
+}
+
+.saved-card__ineligible {
+  color: var(--color-coral);
+  font-size: 0.72rem;
+  margin: 4px 0 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================
+   Swipe deck + ticket card
+   ============================================================ */
+
+.deck-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px calc(110px + var(--safe-bottom));
+  position: relative;
+}
+
+.swipe-deck {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.swipe-card {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.swipe-card--behind {
+  transform: scale(0.97) translateY(10px);
+  opacity: 0.85;
+}
+
+.card-body {
+  padding: 22px 22px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.card-amount {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.card-deadline {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.card-org {
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+}
+
+.card-description {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+
+.card-tag {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(27, 27, 58, 0.08);
+  color: var(--color-ink-soft);
+  font-weight: 500;
+  text-transform: capitalize;
+  border: 1px solid var(--color-line);
+}
+
+/* ============================================================
+   Ticket stub (metrics)
+   ============================================================ */
+
+.ticket-stub {
+  background: var(--color-ink);
+  color: var(--color-on-dark);
+  padding: 14px 18px calc(14px + var(--safe-bottom));
+  position: relative;
+}
+
+.ticket-tear {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px dashed rgba(250, 250, 247, 0.25);
+}
+
+.ticket-tear::before,
+.ticket-tear::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.ticket-tear::before { left: -10px; }
+.ticket-tear::after { right: -10px; }
+
+.stub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stub-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stub-value {
+  font-family: var(--font-mono);
+  font-size: 1.0rem;
+  font-weight: 600;
+}
+
+.stub-value--chance { color: var(--color-teal); }
+.stub-value--money { color: var(--color-gold); }
+.stub-value--ev { color: var(--color-on-dark); }
+
+.stub-label {
+  font-size: 0.65rem;
+  color: var(--color-on-dark-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.stub-disclaimer {
+  font-size: 0.65rem;
+  color: var(--color-on-dark-soft);
+  margin: 8px 0 0;
+  line-height: 1.4;
+}
+
+/* Match bar */
+.match-bar-wrap {
+  padding: 8px 0 4px;
+}
+
+.match-bar-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.match-bar-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-on-dark);
+}
+
+.match-bar-pct {
+  font-size: 0.78rem;
+  color: var(--color-on-dark-soft);
+}
+
+.match-bar-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.match-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* Urgency badge -- four tiers, but only the app's own three accent colors
+   (plus neutral), escalating from tinted to solid-filled as a deadline
+   gets closer, instead of inventing a separate pastel palette per tier. */
+.urgency-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.urgency-badge--normal {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-on-dark-soft);
+}
+
+.urgency-badge--approaching {
+  background: rgba(242, 181, 68, 0.16);
+  color: var(--color-gold);
+}
+
+.urgency-badge--urgent {
+  background: rgba(255, 107, 107, 0.16);
+  color: var(--color-coral);
+}
+
+.urgency-badge--critical {
+  background: var(--color-coral);
+  color: var(--color-ink);
+}
+
+.stub-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.stub-award {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-gold);
+}
+
+.stub-dph {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-on-dark-soft);
+}
+
+/* "Why this match" explainability breakdown */
+.why-match {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(250, 250, 247, 0.15);
+}
+
+.why-match__title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-on-dark-soft);
+  margin: 0 0 4px;
+}
+
+.why-match__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.why-match__row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.why-match__name {
+  font-weight: 600;
+  color: var(--color-on-dark);
+  flex-shrink: 0;
+}
+
+.why-match__score {
+  font-family: var(--font-mono);
+  color: var(--color-teal);
+  flex-shrink: 0;
+}
+
+.why-match__reason {
+  color: var(--color-on-dark-soft);
+}
+
+.why-match__preference {
+  font-size: 0.68rem;
+  color: var(--color-on-dark-soft);
+  font-style: italic;
+  margin: 6px 0 0;
+}
+
+.stub-final-score {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-on-dark);
+  margin: 8px 0 0;
+}
+
+/* ============================================================
+   Swipe buttons, hint + stamps
+   ============================================================ */
+
+/* Deliberately NOT position:absolute -- it's a normal flex child rendered
+   after the ticket-stub, so it always sits fully visible at the true
+   bottom of the card no matter how tall the content above it is, instead
+   of needing a hand-tuned pixel offset that breaks whenever that content's
+   height changes (which is exactly what happened before). */
+.card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding: 14px 0 calc(14px + var(--safe-bottom));
+  background: var(--color-ink);
+  flex-shrink: 0;
+}
+
+.round-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.round-button--pass {
+  background: var(--color-surface);
+  color: var(--color-coral);
+}
+
+.round-button--like {
+  background: var(--color-surface);
+  color: var(--color-teal);
+}
+
+.swipe-hint {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.swipe-hint__side {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.swipe-hint__side--pass {
+  color: var(--color-coral);
+}
+
+.swipe-hint__side--save {
+  color: var(--color-teal);
+}
+
+.swipe-hint__arrow {
+  font-size: 0.9rem;
+}
+
+.swipe-stamp {
+  position: absolute;
+  top: 28px;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 3px solid currentColor;
+  transform: rotate(-12deg);
+}
+
+.swipe-stamp--like {
+  left: 24px;
+  color: var(--color-teal);
+}
+
+.swipe-stamp--pass {
+  right: 24px;
+  color: var(--color-coral);
+  transform: rotate(12deg);
+}
+
+.empty-deck {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--color-on-dark-soft);
+}
+
+.empty-deck h2 {
+  color: var(--color-on-dark);
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   Bottom navigation
+   ============================================================ */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-content-width);
+  display: flex;
+  justify-content: space-around;
+  background: rgba(27, 27, 58, 0.92);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 0 calc(10px + var(--safe-bottom));
+  z-index: 10;
+}
+
+.bottom-nav__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-on-dark-soft);
+  font-size: 0.7rem;
+  padding: 4px 18px;
+  border-radius: 12px;
+}
+
+.bottom-nav__tab.is-active {
+  color: var(--color-gold);
+}
+
+.bottom-nav__icon {
+  font-size: 1.3rem;
+}
+
+/* ============================================================
+   Saved list
+   ============================================================ */
+
+.saved-card {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.saved-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.saved-card__amount {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.saved-card__deadline {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-ink-soft);
+  margin-bottom: 8px;
+}
+
+.saved-card__title {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.saved-card__org {
+  color: var(--color-ink-soft);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.saved-card__metrics {
+  display: flex;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  margin-bottom: 10px;
+}
+
+.saved-card__remove {
+  background: none;
+  border: 1px solid var(--color-line);
+  color: var(--color-ink-soft);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-on-dark-soft);
+  padding: 60px 24px;
+}
+
+/* ============================================================
+   More info link
+   ============================================================ */
+
+.card-more-info-link {
+  display: inline-block;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  color: var(--color-teal);
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-teal);
+  padding-bottom: 2px;
+}
+/* ============================================================
+   APPLICATION TRACKER — paste at the very bottom of index.css
+   ============================================================ */
+
+/* Summary banner at top of Saved page */
+.saved-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.saved-summary__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.saved-summary__value {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+.saved-summary__value--won {
+  color: var(--color-teal);
+}
+
+.saved-summary__label {
+  font-size: 0.7rem;
+  color: var(--color-on-dark-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.saved-summary__divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Section headers */
+.saved-section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-on-dark-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 16px 0 10px;
+}
+
+.saved-section-title--muted {
+  opacity: 0.5;
+}
+
+/* Deadline urgency */
+.saved-card__deadline--urgent {
+  color: var(--color-gold);
+  font-weight: 600;
+}
+
+.saved-card__deadline--overdue {
+  color: var(--color-coral);
+  font-weight: 600;
+}
+
+.saved-card__status-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Status tracker row */
+.status-tracker {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px 0 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.status-tracker::-webkit-scrollbar {
+  display: none;
+}
+
+.status-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-size: 0.65rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.status-btn:active {
+  transform: scale(0.95);
+}
+
+.status-btn--active {
+  background: rgba(0, 0, 0, 0.04);
+  font-weight: 700;
+}
+
+.status-btn__emoji {
+  font-size: 1rem;
+}
+
+.status-btn__label {
+  font-size: 0.62rem;
+  font-weight: 500;
+}
