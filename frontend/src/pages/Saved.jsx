@@ -3,32 +3,38 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import * as api from "../api/client.js";
-import BottomNav from "../components/BottomNav.jsx";
+import {
+  Bookmark,
+  CircleCheck,
+  CircleX,
+  PencilLine,
+  RefreshCw,
+  Trophy,
+} from "lucide-react";
 
 // The five stages of an application pipeline.
 // Order matters — they flow left to right like a progress track.
 const STATUSES = [
-  { key: "saved",       emoji: "🔖", label: "Saved"       },
-  { key: "planning",    emoji: "📝", label: "Planning"     },
-  { key: "in_progress", emoji: "🔄", label: "In Progress"  },
-  { key: "submitted",   emoji: "✅", label: "Submitted"    },
-  { key: "won",         emoji: "🏆", label: "Won!"         },
-  { key: "declined",    emoji: "❌", label: "Didn't Win"   },
+  { key: "saved",       Icon: Bookmark,    label: "Saved"       },
+  { key: "planning",    Icon: PencilLine,  label: "Planning"     },
+  { key: "in_progress", Icon: RefreshCw,   label: "In Progress"  },
+  { key: "submitted",   Icon: CircleCheck, label: "Submitted"    },
+  { key: "won",         Icon: Trophy,      label: "Won!"         },
+  { key: "declined",    Icon: CircleX,     label: "Didn't Win"   },
 ];
 
-// Color accent for the active status button. Reuses the app's three accent
-// tokens instead of a separate color per stage: gold intensifies through
-// the in-progress stages (getting closer to submitting), teal marks a win
-// (the same "positive value" meaning teal has everywhere else), coral marks
-// a decline (same "stop/negative" meaning as the pass button and overdue
-// deadlines).
+// Color accent for the active status button and tag. Same meanings as the
+// app's accents -- amber deepening through the in-progress stages, orange
+// for submitted, teal for a win, coral for a decline -- but in darker shades,
+// because these sit on the white saved card and the bright accents fall
+// well under the 4.5:1 text contrast minimum there.
 const STATUS_COLORS = {
-  saved:       "rgba(255, 181, 69, 0.45)",
-  planning:    "rgba(255, 181, 69, 0.7)",
-  in_progress: "rgba(255, 181, 69, 0.9)",
-  submitted:   "#ffb545",
-  won:         "#2fe1c9",
-  declined:    "#ff5d7a",
+  saved:       "#a35f00",
+  planning:    "#94560a",
+  in_progress: "#854c08",
+  submitted:   "#b3430a",
+  won:         "#0f7a6d",
+  declined:    "#a82d45",
 };
 
 function StatusTracker({ scholarshipId, current, onChange }) {
@@ -58,7 +64,9 @@ function StatusTracker({ scholarshipId, current, onChange }) {
           disabled={updating}
           title={s.label}
         >
-          <span className="status-btn__emoji">{s.emoji}</span>
+          <span className="status-btn__emoji" aria-hidden="true">
+            <s.Icon size={18} strokeWidth={2.4} />
+          </span>
           <span className="status-btn__label">{s.label}</span>
         </button>
       ))}
@@ -139,7 +147,8 @@ export default function Saved() {
               <div className="saved-summary__divider" />
               <div className="saved-summary__stat">
                 <span className="saved-summary__value saved-summary__value--won">
-                  🏆 ${totalWon.toLocaleString()}
+                  <Trophy size={18} strokeWidth={2.4} aria-hidden="true" /> $
+                  {totalWon.toLocaleString()}
                 </span>
                 <span className="saved-summary__label">won!</span>
               </div>
@@ -216,8 +225,6 @@ export default function Saved() {
           ))}
         </section>
       )}
-
-      <BottomNav />
     </div>
   );
 }
@@ -244,7 +251,8 @@ function SavedCard({ item, onStatusChange, onRemove }) {
           className="saved-card__status-tag"
           style={{ color: STATUS_COLORS[status] || STATUS_COLORS.saved }}
         >
-          {statusMeta?.emoji} {statusMeta?.label}
+          {statusMeta && <statusMeta.Icon size={14} strokeWidth={2.6} aria-hidden="true" />}{" "}
+          {statusMeta?.label}
         </span>
       </div>
 

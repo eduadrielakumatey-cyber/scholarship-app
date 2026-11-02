@@ -4,10 +4,40 @@
 // mode) -- common pattern for small apps where splitting them into two
 // routes would just add an extra tap for no benefit.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import LegalFooter from "../components/LegalFooter.jsx";
+import Guide from "../components/guide/Guide.jsx";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// What Scout says/does for the current state of the form. Order matters:
+// errors and in-flight states win over field-level reactions.
+function guideReaction({ mode, focused, email, error, submitting, ageConfirmed, acceptedTerms }) {
+  if (submitting) return { mood: "excited", message: "Here we go..." };
+  if (error) return { mood: "sad", message: `Hmm, that didn't work: ${error}` };
+  if (focused === "password") {
+    return {
+      mood: "shy",
+      message: mode === "signup"
+        ? "Eyes closed, promise! Pick at least 8 characters."
+        : "Not peeking! Type your password.",
+    };
+  }
+  if (focused === "email") {
+    if (!email) return { mood: "curious", message: "What's your email?" };
+    if (EMAIL_PATTERN.test(email)) return { mood: "happy", message: "That looks like a real email. Nice!" };
+    return { mood: "curious", message: "Keep going..." };
+  }
+  if (mode === "signup" && ageConfirmed && acceptedTerms) {
+    return { mood: "happy", message: "All set! Hit Create account and let's find your matches." };
+  }
+  if (mode === "signup") {
+    return { mood: "idle", message: "Hi, I'm Scout! I'll match you with scholarships you can actually win. Setup takes about 2 minutes." };
+  }
+  return { mood: "idle", message: "Welcome back! Your matches missed you." };
+}
 
 export default function Login() {
   const { login, signup } = useAuth();
@@ -21,10 +51,13 @@ export default function Login() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [focused, setFocused] = useState(null);
+  const emailRef = useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    setFocused(null);
     setSubmitting(true);
     try {
       const loggedInUser = mode === "login"
@@ -41,8 +74,20 @@ export default function Login() {
     }
   }
 
+  const reaction = guideReaction({ mode, focused, email, error, submitting, ageConfirmed, acceptedTerms });
+
+  // While typing an email, Scout's eyes track the end of the text, like
+  // it's reading along.
+  let lookAt = null;
+  if (focused === "email" && emailRef.current) {
+    const rect = emailRef.current.getBoundingClientRect();
+    const textEnd = Math.min(14 + email.length * 8.5, rect.width - 14);
+    lookAt = { x: rect.left + textEnd, y: rect.top + rect.height / 2 };
+  }
+
   return (
     <div className="screen" style={{ justifyContent: "center" }}>
+      <Guide mood={reaction.mood} message={reaction.message} lookAt={lookAt} size={104} className="login-guide" />
       <h1 className="page-title">
         Scholar<span className="brand-accent">Match</span>
       </h1>
@@ -59,8 +104,14 @@ export default function Login() {
             type="email"
             required
             autoComplete="email"
+            ref={emailRef}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setFocused("email")}
+            onBlur={() => setFocused(null)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError(null);
+            }}
           />
         </div>
         <div className="field-group">
@@ -72,7 +123,12 @@ export default function Login() {
             minLength={8}
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => setFocused("password")}
+            onBlur={() => setFocused(null)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError(null);
+            }}
           />
         </div>
 

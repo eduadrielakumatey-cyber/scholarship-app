@@ -12,6 +12,7 @@ import { GRADE_LEVELS } from "../constants/gradeLevels.js";
 import InterestSelector from "../components/InterestSelector.jsx";
 import AccountSettings from "../components/AccountSettings.jsx";
 import LegalFooter from "../components/LegalFooter.jsx";
+import Guide from "../components/guide/Guide.jsx";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME",
@@ -28,6 +29,40 @@ const INTEREST_OPTIONS = [
   "stem", "robotics", "coding", "art", "music", "writing",
   "community service", "leadership", "sports", "business", "healthcare",
 ];
+
+// Scout's tip for whichever part of the form the student is on.
+function guideReaction(field, form, { saving, error, isNewProfile }) {
+  if (saving) return { mood: "excited", message: "Crunching your matches..." };
+  if (error) return { mood: "sad", message: `Almost! ${error}` };
+  const gpa = Number(form.gpa);
+  switch (field) {
+    case "gpa":
+      if (form.gpa !== "" && gpa >= 3.5) return { mood: "wow", message: "Ooh, that GPA opens a lot of doors!" };
+      if (form.gpa !== "" && gpa > 0 && gpa < 2.5) {
+        return { mood: "happy", message: "Plenty of scholarships don't look at GPA at all. I'll find those." };
+      }
+      return { mood: "curious", message: "Use the scale your school uses (up to 5.0). Weighted is fine." };
+    case "grade_level":
+      return { mood: "thinking", message: "Some scholarships are only for high school seniors, others only for college students." };
+    case "state":
+      return { mood: "happy", message: "Local money is the best money: state scholarships usually get fewer applicants." };
+    case "major":
+      return { mood: "curious", message: "Not sure yet? Put your best guess. You can change it anytime." };
+    case "demographics":
+      return {
+        mood: "thinking",
+        message: "Totally optional. Some awards are set aside for specific groups, and this helps me find them.",
+      };
+    case "interests":
+      if (form.interests.length >= 3) return { mood: "excited", message: "Love it! That's plenty for me to match on." };
+      if (form.interests.length > 0) return { mood: "happy", message: "Good start! Three or more gives me more to work with." };
+      return { mood: "curious", message: "Pick a few things you love, or add your own." };
+    default:
+      return isNewProfile
+        ? { mood: "happy", message: "Let's build your profile! I only ask for what helps me match you." }
+        : { mood: "idle", message: "Update anything here and I'll refresh your matches." };
+  }
+}
 
 function ChipSelect({ options, selected, onToggle, disabled = false }) {
   return (
@@ -63,6 +98,7 @@ export default function ProfileSetup() {
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [activeField, setActiveField] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -103,15 +139,27 @@ export default function ProfileSetup() {
     }
   }
 
+  const reaction = guideReaction(activeField, form, {
+    saving,
+    error,
+    isNewProfile: !user?.profile_complete,
+  });
+
+  function trackField(e) {
+    const field = e.target.closest("[data-guide]")?.dataset.guide || e.target.id;
+    if (field) setActiveField(field);
+  }
+
   return (
     <div className="screen">
+      <Guide mood={reaction.mood} message={reaction.message} size={64} className="guide-dock profile-guide" />
       <h1 className="page-title">Your profile</h1>
       <p className="page-subtitle">
         This is exactly what the matching engine uses to estimate your fit: the more accurate,
         the better your matches.
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} onFocusCapture={trackField} onClickCapture={trackField}>
         <div className="field-group">
           <label htmlFor="gpa">GPA (0.0–5.0 scale)</label>
           <input
@@ -177,7 +225,7 @@ export default function ProfileSetup() {
           />
         </div>
 
-        <fieldset className="field-group field-group--fieldset">
+        <fieldset className="field-group field-group--fieldset" data-guide="demographics">
           <legend>Demographics (optional)</legend>
           <p className="field-help">
             Some scholarships are only for specific groups. Sharing this is entirely optional,
@@ -209,7 +257,7 @@ export default function ProfileSetup() {
           )}
         </fieldset>
 
-        <div className="field-group">
+        <div className="field-group" data-guide="interests">
           <span className="field-label" id="interests-label">Interests</span>
           <div role="group" aria-labelledby="interests-label">
             <InterestSelector

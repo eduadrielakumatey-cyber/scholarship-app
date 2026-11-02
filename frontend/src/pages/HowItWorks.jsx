@@ -10,17 +10,29 @@
 // scholarship) are illustrative rather than live data, the page says so.
 
 import { useNavigate, Link } from "react-router-dom";
+import {
+  BookOpen,
+  ClipboardList,
+  Cog,
+  GraduationCap,
+  Handshake,
+  Info,
+  MapPin,
+  Sparkles,
+  Target,
+  User,
+} from "lucide-react";
 
 function HeroVisual() {
   return (
     <div className="hiw-hero-visual">
       <div className="hiw-hero-node">
-        <span className="hiw-hero-node__icon" aria-hidden="true">🧑‍🎓</span>
+        <span className="hiw-hero-node__icon" aria-hidden="true"><User size={26} strokeWidth={2.2} /></span>
         <span className="hiw-hero-node__label">Your Profile</span>
       </div>
       <span className="hiw-hero-arrow" aria-hidden="true">→</span>
       <div className="hiw-hero-node">
-        <span className="hiw-hero-node__icon" aria-hidden="true">⚙️</span>
+        <span className="hiw-hero-node__icon" aria-hidden="true"><Cog size={26} strokeWidth={2.2} /></span>
         <span className="hiw-hero-node__label">Matching Engine</span>
       </div>
       <span className="hiw-hero-arrow" aria-hidden="true">→</span>
@@ -36,7 +48,7 @@ function HeroVisual() {
 
 const FACTORS = [
   {
-    icon: "🎯",
+    icon: Target,
     title: "GPA / Academic Performance",
     badge: "Gate + scored factor",
     badgeClass: "mixed",
@@ -44,7 +56,7 @@ const FACTORS = [
       "If a scholarship sets a minimum GPA, you have to meet it to qualify at all. Above that minimum, how much headroom you have feeds your Academic Fit score (30% of Match Quality).",
   },
   {
-    icon: "🎓",
+    icon: GraduationCap,
     title: "Grade Level",
     badge: "Eligibility gate",
     badgeClass: "gate",
@@ -52,7 +64,7 @@ const FACTORS = [
       "Every scholarship lists which grade levels it's open to, from high school senior through 5th-year/grad. If yours isn't on the list, it's filtered out before scoring ever starts.",
   },
   {
-    icon: "📍",
+    icon: MapPin,
     title: "State / Location",
     badge: "Eligibility gate",
     badgeClass: "gate",
@@ -60,7 +72,7 @@ const FACTORS = [
       "Scholarships restricted to specific states only show up if your profile's state is one of them. National scholarships have no state restriction, so this check is skipped entirely.",
   },
   {
-    icon: "📚",
+    icon: BookOpen,
     title: "Intended Major",
     badge: "Usually scored",
     badgeClass: "mixed",
@@ -68,7 +80,7 @@ const FACTORS = [
       "Most scholarships treat major as a scoring signal worth 40% of Match Quality, not a strict rule. A small number are flagged as legally major-restricted; for those only, it becomes a hard requirement.",
   },
   {
-    icon: "✨",
+    icon: Sparkles,
     title: "Interests",
     badge: "Scored · 30%",
     badgeClass: "scored",
@@ -76,7 +88,7 @@ const FACTORS = [
       "We compare your listed interests against a scholarship's own tags, including closely related fields, so \"robotics\" still counts toward a scholarship tagged \"engineering.\"",
   },
   {
-    icon: "🤝",
+    icon: Handshake,
     title: "Demographic Eligibility",
     badge: "Eligibility gate",
     badgeClass: "gate",
@@ -84,7 +96,7 @@ const FACTORS = [
       "Some scholarships are only open to specific demographic groups. If one requires a group that isn't on your profile, it's excluded outright: a strict yes/no check, never a partial score.",
   },
   {
-    icon: "📋",
+    icon: ClipboardList,
     title: "Scholarship-Specific Numbers",
     badge: "Powers value & urgency",
     badgeClass: "neutral",
@@ -182,7 +194,7 @@ export default function HowItWorks() {
         <div className="hiw-factor-grid">
           {FACTORS.map((f) => (
             <div key={f.title} className="hiw-factor-card">
-              <span className="hiw-factor-card__icon" aria-hidden="true">{f.icon}</span>
+              <span className="hiw-factor-card__icon" aria-hidden="true"><f.icon size={22} strokeWidth={2.2} /></span>
               <span className={`hiw-factor-badge hiw-factor-badge--${f.badgeClass}`}>{f.badge}</span>
               <h3 className="hiw-factor-card__title">{f.title}</h3>
               <p className="hiw-factor-card__text">{f.text}</p>
@@ -292,7 +304,7 @@ export default function HowItWorks() {
       {/* 7. DISCLAIMER */}
       <section className="hiw-section">
         <div className="hiw-disclaimer">
-          <span className="hiw-disclaimer__icon" aria-hidden="true">ℹ️</span>
+          <span className="hiw-disclaimer__icon" aria-hidden="true"><Info size={20} strokeWidth={2.4} /></span>
           <p>
             Predictions are estimates based on the scholarship information we have and the profile
             data you provide. They are not guarantees. Eligibility can change, scholarship

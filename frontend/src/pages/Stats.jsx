@@ -9,7 +9,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import * as api from "../api/client.js";
-import BottomNav from "../components/BottomNav.jsx";
 import StatTile from "../components/stats/StatTile.jsx";
 import SaveRateDonut from "../components/stats/SaveRateDonut.jsx";
 import DeadlineList from "../components/stats/DeadlineList.jsx";
@@ -88,8 +87,6 @@ export default function Stats() {
       {!loading && !error && stats && stats.activity.viewed > 0 && (
         <StatsBody stats={stats} />
       )}
-
-      <BottomNav />
     </div>
   );
 }

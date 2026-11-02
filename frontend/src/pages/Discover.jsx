@@ -5,17 +5,55 @@
 // (the backend would 400 on /deck anyway -- checking here avoids that
 // round trip and gives a clearer next step).
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useScholarships } from "../hooks/useScholarships.js";
 import SwipeDeck from "../components/SwipeDeck.jsx";
-import BottomNav from "../components/BottomNav.jsx";
+import Guide from "../components/guide/Guide.jsx";
+import GuideTour, { isTourDone } from "../components/guide/GuideTour.jsx";
+
+// Scout's reaction after each swipe -- a little variety so it doesn't
+// feel like a canned toast.
+const SAVE_LINES = ["Saved! Nice pick.", "Ooh, good one. It's in Saved.", "Added to your list!"];
+const PASS_LINES = ["No worries, next!", "Skipped. I'll keep looking.", "Not your vibe? On to the next."];
 
 export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { deck, loading, error, swipe, reload } = useScholarships();
+  const [touring, setTouring] = useState(false);
+  const [reaction, setReaction] = useState(null);
+  const swipeCount = useRef(0);
+  const reactionTimer = useRef(0);
+
+  // First visit with cards on screen: start the walkthrough once.
+  useEffect(() => {
+    if (!loading && !error && deck.length > 0 && !isTourDone()) setTouring(true);
+    // location.state.tour is set by the sidebar's "Take the tour" button.
+  }, [loading, error, deck.length, location.state?.tour]);
+
+  useEffect(() => () => clearTimeout(reactionTimer.current), []);
+
+  function handleSwipe(id, action) {
+    swipe(id, action);
+    const lines = action === "save" ? SAVE_LINES : PASS_LINES;
+    setReaction({
+      mood: action === "save" ? "excited" : "happy",
+      message: lines[swipeCount.current++ % lines.length],
+    });
+    clearTimeout(reactionTimer.current);
+    reactionTimer.current = setTimeout(() => setReaction(null), 2600);
+  }
+
+  let guide = reaction;
+  if (!guide) {
+    if (loading) guide = { mood: "thinking", message: "Finding your best matches..." };
+    else if (error) guide = { mood: "sad", message: "I couldn't load your matches. Try refreshing." };
+    else if (deck.length === 0) guide = { mood: "happy", message: "You've seen everything for now. Add interests to unlock more!" };
+    else guide = { mood: "idle", message: null };
+  }
 
   useEffect(() => {
     if (user && !user.profile_complete) {
@@ -25,9 +63,20 @@ export default function Discover() {
 
   return (
     <div className="deck-screen">
-      <h1 className="page-title" style={{ marginBottom: 4 }}>
-        Discover
-      </h1>
+      <div className="discover-header">
+        <h1 className="page-title" style={{ marginBottom: 4 }}>
+          Discover
+        </h1>
+        <Guide
+          mood={guide.mood}
+          message={guide.message}
+          size={58}
+          bubble="right"
+          className="discover-guide"
+          onClick={() => setTouring(true)}
+          label="Scout, your guide. Replay the walkthrough"
+        />
+      </div>
 
       {!loading && !error && deck.length > 0 && (
         <div className="swipe-hint">
@@ -42,9 +91,8 @@ export default function Discover() {
 
       {loading && <p className="page-subtitle">Finding your matches...</p>}
       {error && <p className="error-text">{error}</p>}
-      {!loading && !error && <SwipeDeck deck={deck} onSwipe={swipe} onRefresh={reload} />}
-
-      <BottomNav />
+      {!loading && !error && <SwipeDeck deck={deck} onSwipe={handleSwipe} onRefresh={reload} />}
+      {touring && <GuideTour onClose={() => setTouring(false)} />}
     </div>
   );
 }

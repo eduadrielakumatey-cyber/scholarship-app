@@ -1,6 +1,7 @@
 // src/components/SwipeCard.jsx
 
 import { useRef, useState } from "react";
+import { Heart, X } from "lucide-react";
 import ScholarshipMetrics from "./ScholarshipMetrics.jsx";
 import { gradeLevelLabel } from "../constants/gradeLevels.js";
 
@@ -172,7 +173,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
             aria-label="Not interested"
             onClick={() => handleButtonChoice("left")}
           >
-            ✕
+            <X size={28} strokeWidth={3} aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -182,7 +183,12 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
             aria-label="Interested"
             onClick={() => handleButtonChoice("right")}
           >
-            {heartFilled ? "♥" : "♡"}
+            <Heart
+              size={26}
+              strokeWidth={2.6}
+              fill={heartFilled ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
           </button>
         </div>
       )}

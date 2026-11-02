@@ -16,12 +16,13 @@ import Stats from "./pages/Stats.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
 import { Privacy, Terms, Cookies, Licenses } from "./pages/Legal.jsx";
 import StorageNotice from "./components/StorageNotice.jsx";
+import AppLayout from "./components/AppLayout.jsx";
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="screen" />;
   if (!user) return <Navigate to="/login" replace />;
-  return children;
+  return <AppLayout>{children}</AppLayout>;
 }
 
 function AppRoutes() {

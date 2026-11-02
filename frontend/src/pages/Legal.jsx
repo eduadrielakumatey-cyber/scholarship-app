@@ -266,11 +266,17 @@ export function Cookies() {
             <td>Remembers you closed the storage notice</td>
             <td>Until you clear site data</td>
           </tr>
+          <tr>
+            <td>scholarmatch_tour_done</td>
+            <td>Local storage</td>
+            <td>Remembers you finished or skipped Scout's walkthrough</td>
+            <td>Until you clear site data</td>
+          </tr>
         </tbody>
       </table>
       <p>
-        Both are strictly necessary for the features you use, so they don't require consent and
-        there's nothing to switch off. You can clear them at any time in your browser settings.
+        These are all needed for features you use, so they don't require consent and
+        there's nothing to switch off. None of them track you. You can clear them at any time in your browser settings.
       </p>
 
       <h2>Third parties</h2>
@@ -294,6 +300,7 @@ const LICENSES = [
   ["React, React DOM", "MIT License", "Meta Platforms, Inc."],
   ["React Router", "MIT License", "Remix Software Inc."],
   ["Fontsource", "MIT License", "Fontsource contributors"],
+  ["Lucide icons", "ISC License", "Lucide contributors"],
   ["Flask, Flask-SQLAlchemy, Flask-Migrate", "BSD-3-Clause License", "Pallets and contributors"],
   ["Flask-JWT-Extended, Flask-CORS", "MIT License", "Their respective authors"],
   ["bcrypt", "Apache License 2.0", "The Python Cryptographic Authority"],
@@ -303,8 +310,8 @@ export function Licenses() {
   return (
     <LegalLayout title="Licenses & credits">
       <p>
-        {SITE.appName} uses no stock photos or licensed images. Icons are standard emoji drawn
-        by your device's own system font.
+        {SITE.appName} uses no stock photos or licensed images. Interface icons come from the
+        open-source Lucide set, and Scout, our guide character, is original artwork.
       </p>
 
       <h2>Open-source software and fonts</h2>
