@@ -225,3 +225,48 @@ def test_separate_awards_from_one_foundation_are_not_duplicates():
     assert index.duplicate_reason(
         "Coolidge Senator John Heinz Scholarship", "Calvin Coolidge Foundation", "https://coolidgescholars.org/heinz"
     ) is None
+
+
+# ---------------------------------------------------------------------------
+# JavaScript-rendered pages
+# ---------------------------------------------------------------------------
+
+class _FakeResponse:
+    def __init__(self, html):
+        self.text = html
+        self.status_code = 200
+        self.url = "https://grants.example.gov/award"
+        self.headers = {"Content-Type": "text/html"}
+
+
+RENDERED = "Example State Grant awards up to $2,000 per year to residents. " * 10
+
+
+def test_js_only_page_is_rerendered(monkeypatch):
+    import scraper.daily_discovery as dd
+
+    monkeypatch.setattr(dd.requests, "get", lambda *a, **k: _FakeResponse("<div id=app></div>"))
+    monkeypatch.setattr(dd, "render_page", lambda url: (RENDERED, url))
+    text, final_url, err = dd.fetch_page("https://grants.example.gov/award")
+    assert err == "" and "$2,000" in text and final_url == "https://grants.example.gov/award"
+
+
+def test_plain_page_skips_the_browser(monkeypatch):
+    import scraper.daily_discovery as dd
+
+    def boom(url):
+        raise AssertionError("browser should not run for a readable page")
+
+    monkeypatch.setattr(dd.requests, "get", lambda *a, **k: _FakeResponse(f"<p>{RENDERED}</p>"))
+    monkeypatch.setattr(dd, "render_page", boom)
+    text, _, err = dd.fetch_page("https://grants.example.gov/award")
+    assert err == "" and "$2,000" in text
+
+
+def test_failed_render_keeps_the_empty_page(monkeypatch):
+    import scraper.daily_discovery as dd
+
+    monkeypatch.setattr(dd.requests, "get", lambda *a, **k: _FakeResponse("<div id=app></div>"))
+    monkeypatch.setattr(dd, "render_page", lambda url: (None, url))
+    text, _, _ = dd.fetch_page("https://grants.example.gov/award")
+    assert verify_page_content({"title": "x", "amount": 500}, text)[0].startswith("official page has almost no readable text")

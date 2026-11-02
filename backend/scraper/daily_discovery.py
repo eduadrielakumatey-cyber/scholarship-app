@@ -25,7 +25,11 @@ if it passes ALL of:
                         different site, and must not ask for an
                         application/processing fee. This is what stops a
                         wrong amount, made-up deadline or scam listing.
-  5. Run cap         -- at most MAX_INSERTS_PER_RUN per day, so a bad run
+                        Pages that render their text with JavaScript are
+                        re-read in headless Chromium (if Playwright is
+                        installed); the same checks apply to that text.
+  5. Run cap         -- at most MAX_INSERTS_PER_RUN per run (raise it with
+                        --max for a one-off backfill), so a bad daily run
                         can't flood the deck.
 
 Accepted rows are inserted in ONE transaction, then re-read and run through
@@ -40,6 +44,7 @@ students' saved items never break).
 Usage:
     python -m scraper.daily_discovery discovery_inbox/2026-11-02.json
     python -m scraper.daily_discovery discovery_inbox/2026-11-02.json --dry-run
+    python -m scraper.daily_discovery discovery_inbox/backfill-states.json --max 200 --label state-grants
     python -m scraper.daily_discovery --undo 2026-11-02
 """
 
@@ -75,7 +80,7 @@ logger = logging.getLogger("daily_discovery")
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 REPORTS_DIR = BACKEND_DIR / "discovery_reports"
 
-MAX_INSERTS_PER_RUN = 25
+MAX_INSERTS_PER_RUN = 40
 MIN_AMOUNT = 250
 MAX_AMOUNT = 300_000
 MIN_DAYS_TO_DEADLINE = 3      # not worth showing something due in two days
@@ -330,6 +335,39 @@ def verify_page_content(c: dict, page_text: str) -> list[str]:
     return problems
 
 
+def _visible_text(html: str) -> str:
+    soup = BeautifulSoup(html[:2_000_000], "html.parser")
+    for tag in soup(["script", "style", "noscript", "template"]):
+        tag.decompose()
+    return soup.get_text(" ")
+
+
+def render_page(url: str) -> tuple[str | None, str]:
+    """Loads the page in headless Chromium and returns (visible_text, final_url).
+
+    Only used when the plain fetch comes back nearly empty, i.e. the page
+    builds its text with JavaScript. Returns (None, url) when Playwright
+    isn't installed or the render fails, so the caller keeps its original
+    "no readable text" rejection.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return None, url
+    try:
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch()
+            try:
+                page = browser.new_page(user_agent=USER_AGENT)
+                page.goto(url, timeout=REQUEST_TIMEOUT_SECONDS * 2000, wait_until="networkidle")
+                return _visible_text(page.content()), page.url
+            finally:
+                browser.close()
+    except Exception as exc:  # any browser failure just means "couldn't render"
+        logger.info("render failed for %s: %s", url, exc.__class__.__name__)
+        return None, url
+
+
 def fetch_page(url: str) -> tuple[str | None, str, str]:
     """Returns (visible_text or None, final_url, error)."""
     try:
@@ -342,10 +380,12 @@ def fetch_page(url: str) -> tuple[str | None, str, str]:
         return None, resp.url, f"HTTP {resp.status_code} when fetching page"
     if "html" not in resp.headers.get("Content-Type", "html"):
         return None, resp.url, "page is not HTML"
-    soup = BeautifulSoup(resp.text[:2_000_000], "html.parser")
-    for tag in soup(["script", "style", "noscript", "template"]):
-        tag.decompose()
-    return soup.get_text(" "), resp.url, ""
+    text = _visible_text(resp.text)
+    if len(normalize_text(text)) < 200:
+        rendered, rendered_url = render_page(resp.url)
+        if rendered and len(normalize_text(rendered)) > len(normalize_text(text)):
+            return rendered, rendered_url, ""
+    return text, resp.url, ""
 
 
 # ---------------------------------------------------------------------------
@@ -474,7 +514,14 @@ def _smoke_test(rows, today: date) -> None:
         calculate_scores(student, row, today=today)
 
 
-def run(inbox_path: Path, dry_run: bool = False, today: date | None = None, delay: float = REQUEST_DELAY_SECONDS) -> dict:
+def run(
+    inbox_path: Path,
+    dry_run: bool = False,
+    today: date | None = None,
+    delay: float = REQUEST_DELAY_SECONDS,
+    max_inserts: int = MAX_INSERTS_PER_RUN,
+    label: str | None = None,
+) -> dict:
     from app import create_app
     from app.extensions import db
     from app.models import Scholarship
@@ -510,8 +557,8 @@ def run(inbox_path: Path, dry_run: bool = False, today: date | None = None, dela
             if o.duplicate:
                 continue
 
-            if len(accepted) >= MAX_INSERTS_PER_RUN:
-                o.reasons = [f"daily cap of {MAX_INSERTS_PER_RUN} reached; will be picked up another day"]
+            if len(accepted) >= max_inserts:
+                o.reasons = [f"run cap of {max_inserts} reached; will be picked up another day"]
                 continue
 
             status, detail = check_url(c["source_url"])
@@ -572,6 +619,7 @@ def run(inbox_path: Path, dry_run: bool = False, today: date | None = None, dela
 
     summary = {
         "date": today.isoformat(),
+        "label": label,
         "dry_run": dry_run,
         "candidates": len(outcomes),
         "inserted": len(inserted_ids) if not dry_run else sum(o.accepted for o in outcomes),
@@ -589,7 +637,8 @@ def run(inbox_path: Path, dry_run: bool = False, today: date | None = None, dela
 def write_report(outcomes: list[Outcome], summary: dict) -> Path:
     REPORTS_DIR.mkdir(exist_ok=True)
     suffix = "-dry-run" if summary["dry_run"] else ""
-    path = REPORTS_DIR / f"{summary['date']}{suffix}.md"
+    label = f"-{summary['label']}" if summary.get("label") else ""
+    path = REPORTS_DIR / f"{summary['date']}{label}{suffix}.md"
 
     def money(v):
         return f"${v:,.0f}" if isinstance(v, (int, float)) else "?"
@@ -662,6 +711,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("inbox", nargs="?", help="path to the day's candidates JSON")
     parser.add_argument("--dry-run", action="store_true", help="check everything, insert nothing")
     parser.add_argument("--undo", metavar="YYYY-MM-DD", help="deactivate everything added on that day")
+    parser.add_argument("--max", type=int, default=MAX_INSERTS_PER_RUN, help="insert cap for this run (backfills)")
+    parser.add_argument("--label", help="report name suffix, e.g. state-grants")
     args = parser.parse_args(argv)
 
     if args.undo:
@@ -670,7 +721,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.inbox:
         parser.error("give a candidates file, or --undo DATE")
 
-    summary = run(Path(args.inbox), dry_run=args.dry_run)
+    if args.label and not re.fullmatch(r"[a-z0-9-]{1,40}", args.label):
+        parser.error("--label must be lowercase letters, digits and dashes")
+    summary = run(Path(args.inbox), dry_run=args.dry_run, max_inserts=args.max, label=args.label)
     # Last line is machine-readable for the scheduled task to report from.
     print(json.dumps(summary))
     return 2 if summary["db_error"] else 0
