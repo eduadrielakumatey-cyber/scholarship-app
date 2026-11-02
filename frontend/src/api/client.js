@@ -1,6 +1,10 @@
 // src/api/client.js
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+// Without an override, talk to port 5000 on whatever host served the page:
+// localhost on this computer, or the computer's current Wi-Fi address when
+// testing from a phone -- so a changed network IP never breaks the app.
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
 const TOKEN_KEY = "scholarmatch_token";
 
 export function getToken() {
@@ -77,3 +81,6 @@ export const deleteAccount = (password) =>
 
 // --- Stats ---
 export const getStats = () => request("/api/stats");
+
+// --- Public (signed-out homepage) ---
+export const getPublicPreview = () => request("/api/public/preview", { auth: false });

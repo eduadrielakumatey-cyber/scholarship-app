@@ -8,6 +8,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import Login from "./pages/Login.jsx";
+import Landing from "./pages/Landing.jsx";
 import ProfileSetup from "./pages/ProfileSetup.jsx";
 import Discover from "./pages/Discover.jsx";
 import Saved from "./pages/Saved.jsx";
@@ -25,6 +26,18 @@ function RequireAuth({ children }) {
   return <AppLayout>{children}</AppLayout>;
 }
 
+// "/" is the public homepage for visitors and the swipe deck once signed in.
+function Home() {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="screen" />;
+  if (!user) return <Landing />;
+  return (
+    <AppLayout>
+      <Discover />
+    </AppLayout>
+  );
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -34,14 +47,7 @@ function AppRoutes() {
       <Route path="/terms" element={<Terms />} />
       <Route path="/cookies" element={<Cookies />} />
       <Route path="/licenses" element={<Licenses />} />
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <Discover />
-          </RequireAuth>
-        }
-      />
+      <Route path="/" element={<Home />} />
       <Route
         path="/profile"
         element={

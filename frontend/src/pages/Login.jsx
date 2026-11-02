@@ -5,7 +5,7 @@
 // routes would just add an extra tap for no benefit.
 
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import LegalFooter from "../components/LegalFooter.jsx";
 import Guide from "../components/guide/Guide.jsx";
@@ -42,7 +42,9 @@ function guideReaction({ mode, focused, email, error, submitting, ageConfirmed, 
 export default function Login() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [searchParams] = useSearchParams();
+  // The homepage's "Sign up" buttons link to /login?mode=signup.
+  const [mode, setMode] = useState(searchParams.get("mode") === "signup" ? "signup" : "login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // Signup consents: unchecked by default and never pre-ticked, so
@@ -89,7 +91,9 @@ export default function Login() {
     <div className="screen" style={{ justifyContent: "center" }}>
       <Guide mood={reaction.mood} message={reaction.message} lookAt={lookAt} size={104} className="login-guide" />
       <h1 className="page-title">
-        Scholar<span className="brand-accent">Match</span>
+        <Link to="/" aria-label="ScholarMatch home">
+          Scholar<span className="brand-accent">Match</span>
+        </Link>
       </h1>
       <p className="page-subtitle">
         {mode === "login" ? "Welcome back." : "Find scholarships worth your time."}
