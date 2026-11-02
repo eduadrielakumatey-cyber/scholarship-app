@@ -166,6 +166,7 @@ def test_application_fee_is_caught():
         ("applying is free; no processing fee", False),
         ("we will never charge an application fee", False),
         ("a $30 processing fee applies", True),
+        ("the grant covers tuition and admission/application fees", False),
         ("you must pay to apply", True),
     ],
 )
@@ -270,3 +271,8 @@ def test_failed_render_keeps_the_empty_page(monkeypatch):
     monkeypatch.setattr(dd, "render_page", lambda url: (None, url))
     text, _, _ = dd.fetch_page("https://grants.example.gov/award")
     assert verify_page_content({"title": "x", "amount": 500}, text)[0].startswith("official page has almost no readable text")
+
+
+def test_two_digit_year_deadline_matches():
+    page = normalize_text("Applications are due 3/1/27 at midnight.")
+    assert any(v in page for v in deadline_variants(date(2027, 3, 1)))

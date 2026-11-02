@@ -275,6 +275,7 @@ def deadline_variants(d: date) -> list[str]:
         f"{full} {day}", f"{abbr} {day}", f"{day} {full}", f"{day} {abbr}",
         f"{full} {day}{suffix}", f"{abbr} {day}{suffix}", f"{day}{suffix} {full}",
         f"{d.month} {day} {d.year}", f"{d.month:02d} {d.day:02d} {d.year}",
+        f"{d.month} {day} {d.year % 100:02d}", f"{d.month:02d} {d.day:02d} {d.year % 100:02d}",
         f"{d.year} {d.month:02d} {d.day:02d}",
     ]
     return [normalize_text(v) for v in out]
@@ -301,6 +302,10 @@ def fee_red_flag(page_lower: str) -> str | None:
     for m in FEE_PATTERN.finditer(page_lower):
         before = page_lower[max(0, m.start() - 30):m.start()]
         if any(neg in before for neg in FEE_NEGATIONS):
+            continue
+        # "covers tuition and admission/application fees" lists a cost the
+        # aid pays for, not a charge to apply for the aid.
+        if before.endswith(("admission/", "admission or ", "admissions/")):
             continue
         return page_lower[max(0, m.start() - 30):m.end() + 10].strip()
     return None
