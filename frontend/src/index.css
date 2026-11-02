@@ -2246,8 +2246,14 @@ html, body {
   animation: guide-float 3.2s ease-in-out infinite;
 }
 
+/* Three quick hops, then back to the normal float. (The float is
+   delayed until the hops finish; while it's waiting it doesn't apply,
+   so the bounce shows.) An endless bounce looked glitchy whenever Scout
+   stayed excited for a while, e.g. on Profile with 3+ interests. */
 .guide--excited .guide__body {
-  animation: guide-bounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+  animation:
+    guide-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 6 alternate,
+    guide-float 3.2s ease-in-out 1.8s infinite;
 }
 
 .guide--curious .guide__body {
