@@ -14,3 +14,7 @@ dist/
 
 # Don't ignore the .env.example templates
 !.env.example
+
+# Daily discovery run data (candidates in, reports out) -- not code
+backend/discovery_inbox/
+backend/discovery_reports/
