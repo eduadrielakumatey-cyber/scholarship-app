@@ -4346,3 +4346,58 @@ body {
 .demo-action--pass {
   color: var(--bad);
 }
+
+/* ============================================================
+   Density pass: the homepage read as sparse on laptop and
+   desktop screens. Tighter vertical rhythm, a wider column, and
+   type and demo card sized up to fill it.
+   ============================================================ */
+
+.landing {
+  max-width: 1240px;
+}
+
+.landing-hero {
+  gap: 56px;
+  padding: 28px 0 16px;
+}
+
+.landing-section {
+  padding: 48px 0 0;
+}
+
+.landing-h2 {
+  margin-bottom: 20px;
+}
+
+.landing-final {
+  margin-top: 56px;
+  padding: 32px 24px 36px;
+}
+
+.demo-deck__stack {
+  width: min(100%, 440px);
+  height: 330px;
+}
+
+.demo-card__amount {
+  font-size: 3rem;
+}
+
+.demo-card__title {
+  font-size: 1.35rem;
+}
+
+.steps__item {
+  font-size: 1rem;
+}
+
+@media (min-width: 1280px) {
+  .landing-h1 {
+    font-size: 4.6rem;
+  }
+
+  .landing-lede {
+    font-size: 1.25rem;
+  }
+}
