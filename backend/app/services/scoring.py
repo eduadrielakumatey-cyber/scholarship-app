@@ -49,6 +49,8 @@ from __future__ import annotations
 
 from datetime import date
 
+from app.services import interest_taxonomy
+
 
 def _safe_lower_set(values: list[str] | None) -> set[str]:
     return {v.strip().lower() for v in values} if values else set()
@@ -175,10 +177,25 @@ def _interest_alignment(user, scholarship) -> dict:
                 "reason": "No listed interests"}
 
     user_interests = _safe_lower_set(user.interests)
-    overlap = sch_interests & user_interests
+    exact_overlap = sch_interests & user_interests
+
+    # A niche/custom interest (e.g. "semiconductor design", "cybersecurity"
+    # -- see ProfileSetup's free-text interest field) should still credit
+    # a scholarship tagged with the broader category it belongs to
+    # ("engineering", "computer science"), not score zero just because the
+    # exact strings differ. interest_taxonomy.expand() adds those broader
+    # categories on top of the user's raw interests; anything matched only
+    # through that expansion is tracked separately so the explanation can
+    # say so, but counts the same toward the score -- the scholarship IS
+    # about that broader thing, and the user's interest IS a form of it.
+    expanded_user_interests = interest_taxonomy.expand(user_interests)
+    broader_overlap = (sch_interests & expanded_user_interests) - exact_overlap
+
+    overlap = exact_overlap | broader_overlap
     score = round(100 * len(overlap) / len(sch_interests), 1)
     if overlap:
-        reason = f"{len(overlap)} of {len(sch_interests)} listed interests match ({', '.join(sorted(overlap))})"
+        parts = sorted(exact_overlap) + [f"{tag} (related interest)" for tag in sorted(broader_overlap)]
+        reason = f"{len(overlap)} of {len(sch_interests)} listed interests match ({', '.join(parts)})"
     else:
         reason = "None of your listed interests match"
     return {"name": "Interest alignment", "score": score, "weight": _INTEREST_WEIGHT, "reason": reason}

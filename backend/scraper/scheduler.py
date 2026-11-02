@@ -27,6 +27,17 @@ Option B is generally simpler and cheaper (no idle process burning
 compute 23 hours and 59 minutes a day), so it's the recommended default --
 this file exists for the cases where an in-app scheduler is more
 convenient.
+
+FRESHNESS JOB -- separate from the daily discovery run above, this also
+schedules a WEEKLY pass of scraper/link_checker.py (re-verifies every
+row's URL, flags/deactivates dead ones) and scraper/dedupe.py (flags/
+deactivates duplicate rows). Weekly, not daily: it's real-world traffic
+against dozens of third-party domains, and scholarship links don't
+typically go dead or duplicate within a single day, so daily would just
+be unnecessary load for no added benefit. If you're using Option B
+instead of this file, add the equivalent as its own cron line:
+    0 6 * * 0 cd /path/to/backend && /path/to/venv/bin/python -m scraper.link_checker
+    15 6 * * 0 cd /path/to/backend && /path/to/venv/bin/python -m scraper.dedupe --deactivate
 """
 
 import logging
@@ -49,6 +60,25 @@ def scheduled_job():
         logger.exception("Scheduled scrape run raised an unhandled exception")
 
 
+def scheduled_freshness_job():
+    """Weekly link-health + duplicate sweep. Runs link_checker fully
+    (only --only-stale-days would skip recently-checked rows, but a
+    weekly cadence over ~300-2000 rows is already cheap enough not to
+    need that), then dedupe with --deactivate so newly-discovered
+    duplicates don't sit around waiting for a manual run."""
+    logger.info("Triggering weekly link-health + dedupe sweep")
+    try:
+        from scraper.link_checker import run as run_link_checker
+        run_link_checker()
+    except Exception:
+        logger.exception("Weekly link check raised an unhandled exception")
+    try:
+        from scraper.dedupe import run as run_dedupe
+        run_dedupe(deactivate=True)
+    except Exception:
+        logger.exception("Weekly dedupe pass raised an unhandled exception")
+
+
 def main():
     scheduler = BlockingScheduler(timezone="America/New_York")
     # Runs every day at 05:00 in the timezone above. Change `hour`/`minute`
@@ -56,7 +86,10 @@ def main():
     # high schoolers, so America/New_York is a reasonable default; switch
     # to their local timezone if you target a specific region.
     scheduler.add_job(scheduled_job, CronTrigger(hour=5, minute=0))
-    logger.info("Scheduler started. Waiting for the next 5:00 AM trigger...")
+    # Weekly freshness sweep, offset an hour later so it never overlaps
+    # the daily discovery run above.
+    scheduler.add_job(scheduled_freshness_job, CronTrigger(day_of_week="sun", hour=6, minute=0))
+    logger.info("Scheduler started. Waiting for the next scheduled trigger...")
     try:
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):

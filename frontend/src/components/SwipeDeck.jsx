@@ -6,17 +6,32 @@
 // one becomes the front automatically (driven by the `deck` array order
 // from useScholarships).
 
+import { Link } from "react-router-dom";
 import SwipeCard from "./SwipeCard.jsx";
 
-export default function SwipeDeck({ deck, onSwipe }) {
+export default function SwipeDeck({ deck, onSwipe, onRefresh }) {
   if (deck.length === 0) {
     return (
       <div className="empty-deck">
-        <h2>You're all caught up</h2>
+        <h2>You've seen all your current matches</h2>
         <p>
-          No more scholarships match your profile right now. New ones get added daily, so check
-          back soon -- or update your profile to widen your matches.
+          New scholarships are added regularly, and widening your profile can unlock more right
+          now: previously skipped scholarships get another look whenever they fit a newly
+          added interest.
         </p>
+        <div className="empty-deck__actions">
+          <Link to="/profile" className="primary-button empty-deck__action">
+            Update interests
+          </Link>
+          <Link to="/saved" className="text-link-button empty-deck__action">
+            Review saved scholarships
+          </Link>
+          {onRefresh && (
+            <button type="button" className="text-link-button empty-deck__action" onClick={onRefresh}>
+              Refresh recommendations
+            </button>
+          )}
+        </div>
       </div>
     );
   }

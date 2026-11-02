@@ -3,6 +3,9 @@ app/models/interaction.py
 """
 
 from datetime import datetime
+
+from sqlalchemy.dialects.postgresql import ARRAY
+
 from app.extensions import db
 
 
@@ -20,6 +23,17 @@ class Interaction(db.Model):
     # NULL is treated as "saved" in the UI.
     # Values: saved | planning | in_progress | submitted | won | declined
     app_status = db.Column(db.String(20), nullable=True, default="saved")
+
+    # The user's normalized interests at the moment this interaction was
+    # recorded. Only actually consulted for action == "pass" -- it's how
+    # app/services/matching.py decides whether a scholarship a user
+    # skipped is allowed to re-enter their swipe deck later: if their
+    # CURRENT interests contain a tag that wasn't here at pass-time, and
+    # that tag is one this scholarship lists, the pass no longer reflects
+    # an up-to-date judgment and the scholarship gets another look. See
+    # matching.py:_reentry_ids for the full rule and why it's designed
+    # this way (bounded, no repeat spam, never re-shows unrelated passes).
+    interest_snapshot = db.Column(ARRAY(db.String), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

@@ -23,12 +23,12 @@ const STATUSES = [
 // a decline (same "stop/negative" meaning as the pass button and overdue
 // deadlines).
 const STATUS_COLORS = {
-  saved:       "rgba(242, 181, 68, 0.4)",
-  planning:    "rgba(242, 181, 68, 0.65)",
-  in_progress: "rgba(242, 181, 68, 0.85)",
-  submitted:   "#f2b544",
-  won:         "#2ec4b6",
-  declined:    "#ff6b6b",
+  saved:       "rgba(255, 181, 69, 0.45)",
+  planning:    "rgba(255, 181, 69, 0.7)",
+  in_progress: "rgba(255, 181, 69, 0.9)",
+  submitted:   "#ffb545",
+  won:         "#2fe1c9",
+  declined:    "#ff5d7a",
 };
 
 function StatusTracker({ scholarshipId, current, onChange }) {

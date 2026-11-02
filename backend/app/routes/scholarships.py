@@ -14,6 +14,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models import User, Scholarship, Interaction
 from app.services.matching import get_swipe_deck, score_single
+from app.utils.validators import normalize_interests
 
 scholarships_bp = Blueprint("scholarships", __name__, url_prefix="/api/scholarships")
 
@@ -64,6 +65,13 @@ def swipe(scholarship_id):
             user_id=user.id, scholarship_id=scholarship_id, action=action
         )
         db.session.add(interaction)
+
+    # Snapshot the user's interests at the moment of a "pass" -- this is
+    # the baseline app/services/matching.py compares against later to
+    # decide whether a newly-added interest makes the skip stale enough
+    # to reconsider. Only meaningful for "pass" (see matching._reentry_ids),
+    # but harmless to record on any action for consistency.
+    interaction.interest_snapshot = normalize_interests(user.interests)
 
     db.session.commit()
     return jsonify(interaction.to_dict()), 200

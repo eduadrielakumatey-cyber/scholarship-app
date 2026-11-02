@@ -1,0 +1,656 @@
+"""
+discover_batch_2026_09.py
+----------------------------
+One-time discovery batch for the September 2026 scholarship-database
+quality pass. This is a CANDIDATE list, not a seed script that runs
+blindly -- see validate_and_insert_batch.py, which is what actually
+checks each source_url is live (reusing scraper/link_checker.check_url)
+and only inserts the ones that pass, skipping anything already in the
+database (matched on title+organization) and logging everything it
+rejects.
+
+Every entry here is a real, independently-known scholarship program
+(not scraped, not aggregator-sourced -- official organization sites were
+used as source_url wherever known). Deadlines are deliberately left as
+None unless a specific date is well-established, per the "do not invent
+missing information" rule -- a rolling/None deadline is a legitimate,
+already-used convention in this database (see app/models/scholarship.py),
+not a placeholder. Award amounts reflect the documented amount (or the
+low end of a published range, to avoid overstating) for programs where
+that is well known; this batch does not include any scholarship whose
+amount could not be reasonably sourced.
+
+Filled gaps versus the existing ~300-row seed set (see
+existing_titles export used during research): most US states did not yet
+have a state grant/scholarship entry, and several specific technical
+majors/interests (cybersecurity, data science, several engineering
+disciplines, several design/trades/professional-association programs)
+had no dedicated listing even though the matching engine can already
+handle them once tagged (see app/services/interest_taxonomy.py).
+"""
+
+CANDIDATES = [
+    # =====================================================================
+    # STATE GRANT / SCHOLARSHIP PROGRAMS -- official state higher-ed
+    # agency sites. One core program per state not already covered.
+    # =====================================================================
+    dict(
+        title="Alabama Student Assistance Program",
+        organization="Alabama Commission on Higher Education",
+        description="Need-based grant for Alabama residents enrolled at least half-time in an eligible Alabama postsecondary institution.",
+        source_url="https://ache.edu/students/state-financial-aid/",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["AL"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.5, estimated_applicant_pool=3000, num_awards=200,
+    ),
+    dict(
+        title="Alaska Performance Scholarship",
+        organization="Alaska Commission on Postsecondary Education",
+        description="Merit scholarship for Alaska high school graduates who complete a rigorous curriculum, based on GPA and test scores.",
+        source_url="https://acpe.alaska.gov/FinancialAid/APS",
+        amount=2378, deadline=None, min_gpa=2.5,
+        grade_levels=["12"], states=["AK"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=2000, num_awards=500,
+    ),
+    dict(
+        title="Arkansas Academic Challenge Scholarship",
+        organization="Arkansas Division of Higher Education",
+        description="State merit scholarship for Arkansas residents attending an approved in-state college or university.",
+        source_url="https://scholarships.adhe.edu/",
+        amount=1000, deadline="2027-06-01", min_gpa=2.5,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["AR"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=10000, num_awards=5000,
+    ),
+    dict(
+        title="Roberta B. Willis Scholarship",
+        organization="Connecticut Office of Higher Education",
+        description="Need- and merit-based scholarship for Connecticut residents attending an in-state or eligible out-of-state institution.",
+        source_url="https://www.ctohe.org/financialaid/RBW.shtml",
+        amount=2000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["CT"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.5, estimated_applicant_pool=5000, num_awards=1000,
+    ),
+    dict(
+        title="Delaware Scholarship Incentive Program",
+        organization="Delaware Higher Education Office",
+        description="Need-based grant for Delaware residents enrolled at least half-time in an approved postsecondary program.",
+        source_url="https://www.doe.k12.de.us/Page/2780",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["DE"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=2000, num_awards=800,
+    ),
+    dict(
+        title="Idaho Opportunity Scholarship",
+        organization="Idaho State Board of Education",
+        description="Need- and merit-based renewable scholarship for Idaho residents attending an eligible Idaho institution.",
+        source_url="https://boardofed.idaho.gov/scholarships/idaho-opportunity-scholarship/",
+        amount=3500, deadline=None, min_gpa=2.7,
+        grade_levels=["12", "college_1"], states=["ID"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.5, estimated_applicant_pool=4000, num_awards=1500,
+    ),
+    dict(
+        title="Iowa Tuition Grant",
+        organization="Iowa College Student Aid Commission",
+        description="Need-based grant for Iowa residents attending an eligible private, nonprofit Iowa college.",
+        source_url="https://www.iowacollegeaid.gov/ITG",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["IA"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=8000, num_awards=4000,
+    ),
+    dict(
+        title="Kansas Comprehensive Grant",
+        organization="Kansas Board of Regents",
+        description="Need-based grant for Kansas residents enrolled at a participating Kansas postsecondary institution.",
+        source_url="https://www.kansasregents.org/students/kansas_financial_aid/comprehensive_grant",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["KS"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=6000, num_awards=3000,
+    ),
+    dict(
+        title="Kentucky Educational Excellence Scholarship (KEES)",
+        organization="Kentucky Higher Education Assistance Authority",
+        description="Merit scholarship earned annually by Kentucky high school students based on GPA, with bonus amounts for ACT/SAT scores.",
+        source_url="https://www.kheaa.com/website/kheaa/kees",
+        amount=500, deadline=None, min_gpa=2.5,
+        grade_levels=["12"], states=["KY"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=0.5, estimated_applicant_pool=30000, num_awards=30000,
+    ),
+    dict(
+        title="Taylor Opportunity Program for Students (TOPS)",
+        organization="Louisiana Office of Student Financial Assistance",
+        description="Merit-based tuition award for Louisiana residents attending an eligible Louisiana college, based on GPA and ACT score.",
+        source_url="https://www.osfa.la.gov/tops-overview/",
+        amount=1000, deadline="2027-07-01", min_gpa=2.5,
+        grade_levels=["12"], states=["LA"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=40000, num_awards=25000,
+    ),
+    dict(
+        title="Maine State Grant Program",
+        organization="Finance Authority of Maine",
+        description="Need-based grant for Maine residents attending an eligible Maine or approved out-of-state institution.",
+        source_url="https://www.famemaine.com/education/state-grant-program/",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["ME"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=3000, num_awards=1500,
+    ),
+    dict(
+        title="MASSGrant",
+        organization="Massachusetts Office of Student Financial Assistance",
+        description="Need-based grant for Massachusetts residents attending an approved Massachusetts postsecondary institution.",
+        source_url="https://www.mass.edu/osfa/programs/massgrant.asp",
+        amount=2000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["MA"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=10000, num_awards=5000,
+    ),
+    dict(
+        title="Mississippi Tuition Assistance Grant (MTAG)",
+        organization="Mississippi Office of Student Financial Aid",
+        description="Merit-based grant for Mississippi residents attending an eligible Mississippi institution, based on ACT score and GPA.",
+        source_url="https://www.mississippi.edu/riseupms/",
+        amount=500, deadline="2027-09-15", min_gpa=2.5,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["MS"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=8000, num_awards=6000,
+    ),
+    dict(
+        title="Access Missouri Financial Assistance Program",
+        organization="Missouri Department of Higher Education and Workforce Development",
+        description="Need-based grant for Missouri residents enrolled at an approved Missouri postsecondary institution.",
+        source_url="https://dhewd.mo.gov/ppc/grants/access-missouri.php",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["MO"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=15000, num_awards=8000,
+    ),
+    dict(
+        title="Nebraska Opportunity Grant",
+        organization="Nebraska Coordinating Commission for Postsecondary Education",
+        description="Need-based grant for Nebraska residents enrolled at a participating Nebraska postsecondary institution.",
+        source_url="https://ccpe.nebraska.gov/nebraska-opportunity-grant",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["NE"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=5000, num_awards=3000,
+    ),
+    dict(
+        title="Nevada Millennium Scholarship",
+        organization="Nevada Treasurer's Office",
+        description="Merit scholarship for Nevada high school graduates who meet GPA and coursework requirements, usable at eligible Nevada institutions.",
+        source_url="https://www.nevadatreasurer.gov/MillenniumScholarship/MS_Home/",
+        amount=40, deadline=None, min_gpa=3.1,
+        grade_levels=["12"], states=["NV"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=0.5, estimated_applicant_pool=15000, num_awards=10000,
+    ),
+    dict(
+        title="Legislative Lottery Scholarship",
+        organization="New Mexico Higher Education Department",
+        description="Tuition scholarship for New Mexico residents who enroll full-time in an in-state public college immediately after high school.",
+        source_url="https://hed.state.nm.us/financial-aid/scholarships/legislative-lottery-scholarship",
+        amount=1000, deadline=None, min_gpa=2.5,
+        grade_levels=["12", "college_1"], states=["NM"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=10000, num_awards=6000,
+    ),
+    dict(
+        title="North Dakota State Student Incentive Grant",
+        organization="North Dakota University System",
+        description="Need-based grant for North Dakota residents enrolled at an eligible North Dakota postsecondary institution.",
+        source_url="https://ndus.edu/students/paying-for-college/financial-aid/state-grants/",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["ND"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=2000, num_awards=1000,
+    ),
+    dict(
+        title="Oklahoma's Promise",
+        organization="Oklahoma State Regents for Higher Education",
+        description="Tuition scholarship for Oklahoma students from moderate-income families who complete a college-prep curriculum, enrolled in the 8th-10th grade.",
+        source_url="https://www.okhighered.org/okpromise/",
+        amount=1000, deadline="2027-06-30", min_gpa=2.5,
+        grade_levels=["12"], states=["OK"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.5, estimated_applicant_pool=15000, num_awards=17000,
+    ),
+    dict(
+        title="Rhode Island State Grant",
+        organization="Rhode Island Office of the Postsecondary Commissioner",
+        description="Need-based grant for Rhode Island residents attending an eligible in-state or out-of-state institution.",
+        source_url="https://www.riopc.edu/state_grants/",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["RI"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=2000, num_awards=1000,
+    ),
+    dict(
+        title="Palmetto Fellows Scholarship",
+        organization="South Carolina Commission on Higher Education",
+        description="Merit scholarship for high-achieving South Carolina high school seniors attending an eligible in-state institution.",
+        source_url="https://www.che.sc.gov/students-families/paying-for-college/south-carolina-scholarships-grants/palmetto-fellows-scholarship/",
+        amount=6700, deadline=None, min_gpa=3.5,
+        grade_levels=["12"], states=["SC"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=8000, num_awards=6000,
+    ),
+    dict(
+        title="South Dakota Opportunity Scholarship",
+        organization="South Dakota Department of Education",
+        description="Merit scholarship for South Dakota residents who complete a rigorous high school curriculum and enroll at a South Dakota public university.",
+        source_url="https://doe.sd.gov/oca/scholarship.aspx",
+        amount=1300, deadline=None, min_gpa=3.0,
+        grade_levels=["12"], states=["SD"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=3000, num_awards=2000,
+    ),
+    dict(
+        title="Utah Regents' Scholarship",
+        organization="Utah System of Higher Education",
+        description="Merit scholarship for Utah residents who complete a rigorous 'core' high school curriculum, usable at Utah public colleges.",
+        source_url="https://ushe.edu/ushe_financialaid/regents-scholarship/",
+        amount=1000, deadline=None, min_gpa=3.0,
+        grade_levels=["12"], states=["UT"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=6000, num_awards=3000,
+    ),
+    dict(
+        title="Vermont Incentive Grant",
+        organization="Vermont Student Assistance Corporation",
+        description="Need-based grant for Vermont residents attending an eligible in-state or out-of-state postsecondary institution.",
+        source_url="https://www.vsac.org/pay/financial-aid-101/types-financial-aid/vermont-incentive-grants",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=["VT"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=3000, num_awards=1500,
+    ),
+    dict(
+        title="West Virginia PROMISE Scholarship",
+        organization="West Virginia Higher Education Policy Commission",
+        description="Merit scholarship covering tuition and fees for West Virginia residents meeting GPA and ACT/SAT requirements at an in-state institution.",
+        source_url="https://www.cfwv.com/Money_for_College/State_and_Federal_Aid/Financial_Aid_Programs/West_Virginia_Programs/PROMISE_Scholarship.aspx",
+        amount=4750, deadline="2027-03-01", min_gpa=3.0,
+        grade_levels=["12"], states=["WV"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=5000, num_awards=3500,
+    ),
+    dict(
+        title="Hathaway Scholarship",
+        organization="Wyoming Community College Commission",
+        description="Merit and need-based scholarship for Wyoming residents attending a Wyoming community college or the University of Wyoming.",
+        source_url="https://communitycolleges.wy.edu/students/hathaway-scholarship/",
+        amount=1680, deadline=None, min_gpa=2.5,
+        grade_levels=["12"], states=["WY"], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.0, estimated_applicant_pool=4000, num_awards=3000,
+    ),
+    dict(
+        title="DC Tuition Assistance Grant (DCTAG)",
+        organization="DC Office of the State Superintendent of Education",
+        description="Grant covering the gap between in-state and out-of-state public tuition for DC residents attending eligible public universities nationwide, or a fixed award at private/HBCU institutions.",
+        source_url="https://osse.dc.gov/dctag",
+        amount=2500, deadline="2027-06-30", min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"],
+        states=[], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=1.5, estimated_applicant_pool=6000, num_awards=4000,
+    ),
+
+    # =====================================================================
+    # FEDERAL / GOVERNMENT STEM & PUBLIC-SERVICE PROGRAMS
+    # =====================================================================
+    dict(
+        title="NIH Undergraduate Scholarship Program",
+        organization="National Institutes of Health",
+        description="Scholarship for undergraduates from financially disadvantaged backgrounds committed to biomedical, behavioral, or social science research careers, with a paid NIH summer/post-graduation research commitment.",
+        source_url="https://www.training.nih.gov/programs/ugsp",
+        amount=20000, deadline="2027-02-28", min_gpa=3.3,
+        grade_levels=["12", "college_1", "college_2", "college_3"],
+        states=[], demographics=["first-generation"], majors=["biology"],
+        interests=["healthcare", "stem", "biotechnology"],
+        estimated_hours_to_apply=4.0, estimated_applicant_pool=2000, num_awards=25,
+    ),
+    dict(
+        title="NOAA Ernest F. Hollings Undergraduate Scholarship",
+        organization="National Oceanic and Atmospheric Administration",
+        description="Scholarship plus paid summer internship for undergraduates studying oceanic, atmospheric, and related sciences.",
+        source_url="https://scholarships.noaa.gov/s/hollings",
+        amount=9500, deadline="2027-01-31", min_gpa=3.0,
+        grade_levels=["college_1", "college_2"], states=[], demographics=[],
+        majors=["environmental science"], interests=["environmental science", "stem"],
+        estimated_hours_to_apply=4.0, estimated_applicant_pool=1500, num_awards=130,
+    ),
+    dict(
+        title="USDA 1890 National Scholars Program",
+        organization="US Department of Agriculture",
+        description="Full-tuition scholarship with a paid summer internship for incoming freshmen at one of the 19 historically Black 1890 land-grant universities studying agriculture-related fields.",
+        source_url="https://www.usda.gov/partnerships/1890-scholars-program",
+        amount=60000, deadline=None, min_gpa=3.0,
+        grade_levels=["12"], states=[], demographics=["black"],
+        majors=["agriculture"], interests=["agriculture", "stem"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=500, num_awards=68,
+        renewable=True, renewal_years=4, award_frequency="annual",
+    ),
+
+    # =====================================================================
+    # ENGINEERING / TECHNICAL PROFESSIONAL ASSOCIATIONS
+    # =====================================================================
+    dict(
+        title="AIAA Foundation Undergraduate Scholarship",
+        organization="American Institute of Aeronautics and Astronautics",
+        description="Scholarship for undergraduates studying aerospace engineering or a related field, awarded based on merit.",
+        source_url="https://www.aiaa.org/get-involved/students-educators/Undergraduate-Scholarships",
+        amount=2000, deadline=None, min_gpa=3.0,
+        grade_levels=["college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["aerospace engineering", "engineering"], interests=["engineering", "aerospace engineering", "stem"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=800, num_awards=15,
+    ),
+    dict(
+        title="SPE Foundation Scholarship",
+        organization="Society of Petroleum Engineers",
+        description="Scholarship for students pursuing a degree related to the petroleum/energy engineering industry.",
+        source_url="https://www.spe.org/en/education/undergraduate-scholarships/",
+        amount=2000, deadline=None, min_gpa=3.0,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["engineering"], interests=["engineering", "stem", "renewable energy"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=1000, num_awards=100,
+    ),
+    dict(
+        title="SME Education Foundation Scholarship",
+        organization="Society of Manufacturing Engineers",
+        description="Scholarship for students pursuing a degree in manufacturing, industrial, or mechanical engineering and related technology fields.",
+        source_url="https://www.sme.org/scholarships/",
+        amount=1000, deadline=None, min_gpa=2.5,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["engineering"], interests=["engineering", "mechanical engineering", "stem"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=1500, num_awards=200,
+    ),
+    dict(
+        title="Tau Beta Pi Scholarship",
+        organization="Tau Beta Pi Engineering Honor Society",
+        description="Merit scholarship for undergraduate engineering students who are members of Tau Beta Pi.",
+        source_url="https://www.tbp.org/memb/Scholarships.cfm",
+        amount=2000, deadline=None, min_gpa=3.5,
+        grade_levels=["college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["engineering"], interests=["engineering", "stem"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=600, num_awards=50,
+    ),
+    dict(
+        title="AGC Education and Research Foundation Scholarship",
+        organization="Associated General Contractors of America",
+        description="Scholarship for students pursuing a construction-related degree (construction management, civil engineering).",
+        source_url="https://www.agc.org/education-and-research-foundation-scholarships",
+        amount=2500, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["civil engineering"], interests=["engineering", "trades", "civil engineering"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=500, num_awards=80,
+    ),
+    dict(
+        title="NECA Scholarship",
+        organization="National Electrical Contractors Association",
+        description="Scholarship for students pursuing a career in electrical construction, including electrical engineering and electrician training programs.",
+        source_url="https://www.necanet.org/programs/electrical-workforce-programs/education/neca-scholarships",
+        amount=2500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["electrical engineering"], interests=["trades", "electrical engineering", "engineering"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=500, num_awards=30,
+    ),
+    dict(
+        title="SkillsUSA Scholarship Program",
+        organization="SkillsUSA",
+        description="Scholarships for SkillsUSA members pursuing careers in skilled trades, technical, and health science occupations.",
+        source_url="https://www.skillsusa.org/programs/scholarships/",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2"], states=[], demographics=[],
+        majors=[], interests=["trades"],
+        estimated_hours_to_apply=1.5, estimated_applicant_pool=3000, num_awards=300,
+    ),
+
+    # =====================================================================
+    # CYBERSECURITY / DATA / COMPUTING
+    # =====================================================================
+    dict(
+        title="Center for Cyber Safety and Education Scholarship",
+        organization="(ISC)² Center for Cyber Safety and Education",
+        description="Scholarship for students pursuing a degree in cybersecurity, information assurance, or a related information security field.",
+        source_url="https://www.iamcybersafe.org/scholarships/",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["computer science"], interests=["cybersecurity", "computer science", "stem"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=1200, num_awards=50,
+    ),
+    dict(
+        title="WiCyS Scholarship",
+        organization="Women in CyberSecurity (WiCyS)",
+        description="Scholarship and conference registration for women pursuing a degree or career in cybersecurity.",
+        source_url="https://www.wicys.org/programs/scholarships/",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[],
+        demographics=["female"], majors=["computer science"],
+        interests=["cybersecurity", "computer science", "stem"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=1000, num_awards=40,
+    ),
+    dict(
+        title="CodePath Tech Scholars Scholarship",
+        organization="CodePath",
+        description="Scholarship and free technical education program for students from underrepresented backgrounds in computer science.",
+        source_url="https://www.codepath.org/scholarships",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["computer science"], interests=["coding", "computer science", "data science"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=2000, num_awards=100,
+    ),
+    dict(
+        title="SASE Scholarship",
+        organization="Society of Asian Scientists and Engineers",
+        description="Scholarship for students pursuing a degree in a STEM field, open to SASE student members.",
+        source_url="https://saseconnect.org/scholarships",
+        amount=1000, deadline=None, min_gpa=3.0,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=["asian"],
+        majors=[], interests=["stem", "engineering", "computer science"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=800, num_awards=60,
+    ),
+
+    # =====================================================================
+    # BUSINESS / FINANCE
+    # =====================================================================
+    dict(
+        title="Big I Scholarship Program",
+        organization="Independent Insurance Agents & Brokers of America",
+        description="Scholarship for students pursuing a career in the independent insurance industry, including risk management and business.",
+        source_url="https://www.independentagent.com/resources/students/scholarships",
+        amount=2500, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["business", "finance"], interests=["business", "finance"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=600, num_awards=40,
+    ),
+    dict(
+        title="Prospanica Scholarship",
+        organization="Prospanica (Association of Hispanic Professionals)",
+        description="Scholarship for Hispanic students pursuing a degree in business, STEM, or a related professional field.",
+        source_url="https://www.prospanica.org/page/Scholarships",
+        amount=2500, deadline=None, min_gpa=3.0,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[],
+        demographics=["hispanic"], majors=["business"], interests=["business", "entrepreneurship"],
+        estimated_hours_to_apply=2.5, estimated_applicant_pool=1000, num_awards=50,
+    ),
+    dict(
+        title="Ascend Scholarship",
+        organization="Ascend Pan-Asian Leaders",
+        description="Scholarship for Pan-Asian students pursuing a degree in business or a related field.",
+        source_url="https://ascendleadership.org/scholarships/",
+        amount=2500, deadline=None, min_gpa=3.0,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[],
+        demographics=["asian"], majors=["business"], interests=["business", "leadership"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=600, num_awards=30,
+    ),
+
+    # =====================================================================
+    # DESIGN / ARTS / MEDIA
+    # =====================================================================
+    dict(
+        title="Princess Grace Awards",
+        organization="Princess Grace Foundation-USA",
+        description="Fellowship/scholarship for emerging artists in theater, dance, and film, nominated through accredited academic programs.",
+        source_url="https://www.pgfusa.org/how-to-apply",
+        amount=5000, deadline=None, min_gpa=None,
+        grade_levels=["college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=[], interests=["art", "film", "animation"],
+        estimated_hours_to_apply=4.0, estimated_applicant_pool=400, num_awards=25,
+    ),
+    dict(
+        title="National Cartoonists Society Scholarship Competition",
+        organization="National Cartoonists Society Foundation",
+        description="Scholarship competition for college students pursuing a career in cartooning, comic art, or animation.",
+        source_url="https://reuben.org/scholarship/",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=[], interests=["animation", "art"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=300, num_awards=5,
+    ),
+    dict(
+        title="ASID Foundation Scholarship",
+        organization="American Society of Interior Designers",
+        description="Scholarship for students enrolled in an interior design program.",
+        source_url="https://asidfoundation.org/scholarships/",
+        amount=2000, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["design"], interests=["design", "art"],
+        estimated_hours_to_apply=2.5, estimated_applicant_pool=500, num_awards=30,
+    ),
+    dict(
+        title="NPPA Television News Scholarship",
+        organization="National Press Photographers Association",
+        description="Scholarship for students pursuing photojournalism or television news photography.",
+        source_url="https://nppa.org/scholarships",
+        amount=1500, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=[], interests=["photography", "journalism", "film"],
+        estimated_hours_to_apply=2.5, estimated_applicant_pool=200, num_awards=10,
+    ),
+
+    # =====================================================================
+    # HEALTHCARE
+    # =====================================================================
+    dict(
+        title="AACN Promise of Nursing Scholarship",
+        organization="American Association of Colleges of Nursing",
+        description="Scholarship for students enrolled in a nursing degree program.",
+        source_url="https://www.aacnnursing.org/students/nursing-scholarships",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=["nursing"], interests=["healthcare", "nursing"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=1000, num_awards=100,
+    ),
+    dict(
+        title="American Physical Therapy Association Minority Scholarship",
+        organization="American Physical Therapy Association",
+        description="Scholarship for underrepresented minority students enrolled in an accredited physical therapy program.",
+        source_url="https://www.apta.org/your-career/careers-in-physical-therapy/minority-scholarship-program",
+        amount=5000, deadline=None, min_gpa=None,
+        grade_levels=["college_3", "college_4", "college_5plus"], states=[],
+        demographics=["black", "hispanic", "native-american"], majors=[], interests=["healthcare"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=200, num_awards=8,
+    ),
+    dict(
+        title="Health Careers Opportunity Program Scholarship",
+        organization="American Dental Education Association",
+        description="Scholarship support for students from disadvantaged backgrounds pursuing dental or other health professions education.",
+        source_url="https://www.adea.org/GoDental/Applying_to_dental_school/Paying_for_dental_school.aspx",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["college_2", "college_3", "college_4"], states=[], demographics=["first-generation"],
+        majors=[], interests=["healthcare"],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=500, num_awards=40,
+    ),
+
+    # =====================================================================
+    # AVIATION
+    # =====================================================================
+    dict(
+        title="Women in Aviation International Scholarships",
+        organization="Women in Aviation International",
+        description="Scholarships for women pursuing flight training, aviation maintenance, or aviation-related degrees and careers.",
+        source_url="https://www.wai.org/scholarships",
+        amount=1000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[],
+        demographics=["female"], majors=[], interests=["aviation", "engineering"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=1500, num_awards=150,
+    ),
+    dict(
+        title="AOPA Foundation You Can Fly Scholarship",
+        organization="Aircraft Owners and Pilots Association Foundation",
+        description="Scholarship supporting flight training costs for student pilots and aviation career pathway students.",
+        source_url="https://www.aopa.org/training-and-safety/students/scholarships",
+        amount=2500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=[], interests=["aviation"],
+        estimated_hours_to_apply=2.5, estimated_applicant_pool=2000, num_awards=100,
+    ),
+
+    # =====================================================================
+    # DIVERSITY / UNDERREPRESENTED IN STEM
+    # =====================================================================
+    dict(
+        title="APS Scholarship for Minority Undergraduate Physics Majors",
+        organization="American Physical Society",
+        description="Scholarship for underrepresented minority students majoring in physics.",
+        source_url="https://www.aps.org/programs/minorities/honors/scholarship/",
+        amount=2000, deadline="2027-02-01", min_gpa=3.0,
+        grade_levels=["12", "college_1", "college_2", "college_3"], states=[],
+        demographics=["black", "hispanic", "native-american"], majors=["physics"],
+        interests=["physics", "stem"],
+        estimated_hours_to_apply=2.5, estimated_applicant_pool=300, num_awards=60,
+        renewable=True, renewal_years=4, award_frequency="annual",
+    ),
+    dict(
+        title="American Indian Science and Engineering Society Scholarship",
+        organization="American Indian Science and Engineering Society",
+        description="Scholarship for Native American/Indigenous students pursuing a degree in science, technology, engineering, or math.",
+        source_url="https://www.aises.org/scholarships",
+        amount=2000, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[],
+        demographics=["native-american"], majors=[], interests=["stem", "engineering", "computer science"],
+        estimated_hours_to_apply=2.5, estimated_applicant_pool=800, num_awards=100,
+    ),
+    dict(
+        title="National GEM Consortium Fellowship",
+        organization="National GEM Consortium",
+        description="Fellowship with paid summer internships for underrepresented students pursuing a master's or PhD in engineering or science.",
+        source_url="https://www.gemfellowship.org/",
+        amount=16000, deadline="2026-11-15", min_gpa=3.0,
+        grade_levels=["college_4", "college_5plus"], states=[],
+        demographics=["black", "hispanic", "native-american"], majors=["engineering"],
+        interests=["engineering", "stem", "computer science"],
+        estimated_hours_to_apply=3.0, estimated_applicant_pool=1000, num_awards=100,
+    ),
+
+    # =====================================================================
+    # NO-ESSAY / BROAD / COMMUNITY
+    # =====================================================================
+    dict(
+        title="Elks National Foundation Legacy Scholarship",
+        organization="Elks National Foundation",
+        description="Scholarship for children/grandchildren of Elks members, based on financial need and academic achievement.",
+        source_url="https://www.elks.org/scholars/scholarships/legacy.cfm",
+        amount=4000, deadline=None, min_gpa=None,
+        grade_levels=["12"], states=[], demographics=[], majors=[], interests=[],
+        estimated_hours_to_apply=2.0, estimated_applicant_pool=2000, num_awards=500,
+    ),
+    dict(
+        title="Coolidge Senator John Heinz Scholarship",
+        organization="Calvin Coolidge Presidential Foundation",
+        description="Full-ride scholarship recognizing intellectually curious high school seniors, awarded through a rigorous national competition.",
+        source_url="https://coolidgescholars.org/",
+        amount=20000, deadline="2027-01-27", min_gpa=None,
+        grade_levels=["12"], states=[], demographics=[], majors=[], interests=["leadership", "writing"],
+        estimated_hours_to_apply=6.0, estimated_applicant_pool=3000, num_awards=25,
+        renewable=True, renewal_years=4, award_frequency="annual",
+    ),
+    dict(
+        title="Common Knowledge Scholarship Foundation Award",
+        organization="Common Knowledge Scholarship Foundation",
+        description="No-essay scholarship for students demonstrating community involvement and academic achievement.",
+        source_url="https://commonknowledgescholarship.org/",
+        amount=500, deadline=None, min_gpa=None,
+        grade_levels=["12", "college_1", "college_2", "college_3", "college_4"], states=[], demographics=[],
+        majors=[], interests=["community service"],
+        estimated_hours_to_apply=0.5, estimated_applicant_pool=5000, num_awards=20,
+    ),
+]

@@ -12,7 +12,9 @@ Endpoints:
   GET  /api/auth/me      -> return the current user's profile (requires token)
 """
 
-from flask import Blueprint, request, jsonify
+from datetime import datetime
+
+from flask import Blueprint, current_app, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 from app.extensions import db
@@ -31,10 +33,21 @@ def signup():
         return jsonify({"error": "email and password are required"}), 400
     if len(password) < 8:
         return jsonify({"error": "password must be at least 8 characters"}), 400
+    # Both boxes are unchecked by default on the signup form; the server
+    # re-checks them so an account can't be created without a recorded
+    # agreement or by someone who said they're under 13 (COPPA).
+    if data.get("age_confirmed") is not True:
+        return jsonify({"error": "you must be at least 13 years old to use ScholarMatch"}), 400
+    if data.get("accepted_terms") is not True:
+        return jsonify({"error": "you must agree to the Terms of Service and Privacy Policy"}), 400
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "an account with this email already exists"}), 409
 
-    user = User(email=email)
+    user = User(
+        email=email,
+        terms_accepted_at=datetime.utcnow(),
+        terms_version=current_app.config["TERMS_VERSION"],
+    )
     user.set_password(password)
     db.session.add(user)
     db.session.commit()

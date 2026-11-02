@@ -25,6 +25,12 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [flyDirection, setFlyDirection] = useState(null);
+  // Set the instant a heart/skip button is clicked (or a drag crosses the
+  // threshold) so the button itself can play its confirm animation
+  // (heart fill + bounce / skip punch) independently of the card's own
+  // fly-off transform -- the two run at the same time, not one blocking
+  // the other, so the whole interaction still reads as fast.
+  const [confirmedAction, setConfirmedAction] = useState(null);
   const startX = useRef(0);
 
   function handlePointerDown(e) {
@@ -58,7 +64,11 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
 
   function triggerFlyOff(direction) {
     setFlyDirection(direction);
-    setTimeout(() => onSwiped(direction === "right" ? "save" : "pass"), 220);
+    setConfirmedAction(direction === "right" ? "like" : "pass");
+    // Slightly longer than the card's own 220ms fly-off so the button's
+    // confirm animation (see .round-button--pop / --punch) has time to
+    // read before the card is gone -- still snappy, not a "slow" delay.
+    setTimeout(() => onSwiped(direction === "right" ? "save" : "pass"), 260);
   }
 
   function handleButtonChoice(direction) {
@@ -76,8 +86,12 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
     opacity,
   };
 
-  const showLikeStamp = dragX > 40;
-  const showPassStamp = dragX < -40;
+  const showLikeStamp = dragX > 40 || confirmedAction === "like";
+  const showPassStamp = dragX < -40 || confirmedAction === "pass";
+  // The heart glyph "fills in" as soon as a save is committed to -- by
+  // dragging far enough right or by pressing the button -- instead of
+  // always rendering solid, so there's something visible to animate.
+  const heartFilled = dragX > 40 || confirmedAction === "like";
 
   // Build eligibility tags
   const tags = [];
@@ -108,6 +122,11 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
       ref={cardRef}
       className={`swipe-card ${isTop ? "swipe-card--top" : "swipe-card--behind"}`}
       style={style}
+      // Cards stacked behind the front one are purely decorative: keep
+      // their links/buttons out of the tab order and screen readers.
+      // (React 18 only passes `inert` through as a string attribute.)
+      inert={isTop ? undefined : ""}
+      aria-hidden={isTop ? undefined : true}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={finishDrag}
@@ -134,7 +153,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
 
         <div className="card-tags">
           {tags.map((tag, i) => (
-            <span key={i} className="card-tag">{tag}</span>
+            <span key={i} className={`card-tag card-tag--${"abcd"[i % 4]}`}>{tag}</span>
           ))}
         </div>
 
@@ -147,7 +166,9 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
         <div className="card-actions">
           <button
             type="button"
-            className="round-button round-button--pass"
+            className={`round-button round-button--pass ${
+              confirmedAction === "pass" ? "round-button--punch" : ""
+            }`}
             aria-label="Not interested"
             onClick={() => handleButtonChoice("left")}
           >
@@ -155,11 +176,13 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
           </button>
           <button
             type="button"
-            className="round-button round-button--like"
+            className={`round-button round-button--like ${
+              confirmedAction === "like" ? "round-button--pop" : ""
+            } ${heartFilled ? "round-button--like-filled" : ""}`}
             aria-label="Interested"
             onClick={() => handleButtonChoice("right")}
           >
-            ♥
+            {heartFilled ? "♥" : "♡"}
           </button>
         </div>
       )}

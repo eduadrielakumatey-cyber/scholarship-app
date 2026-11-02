@@ -6,6 +6,8 @@
 // here comes straight from the API -- nothing is generated client-side,
 // per the "deterministic explanations, not AI-generated ones" requirement.
 
+import { Link } from "react-router-dom";
+
 function formatMoney(value) {
   return `$${Number(value ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
@@ -153,9 +155,13 @@ export default function ScholarshipMetrics({ scholarship }) {
 
       <p className="stub-disclaimer">
         Competitiveness and expected value are estimates based on award size, applicant pool, and
-        how well your profile matches. Not a guarantee -- and not a calculated probability of
+        how well your profile matches. Not a guarantee, and not a calculated probability of
         winning, since we don't have real outcome data to calibrate one.
       </p>
+
+      <Link to="/how-it-works" className="stub-how-link">
+        How we calculate this →
+      </Link>
     </div>
   );
 }

@@ -15,7 +15,7 @@ import BottomNav from "../components/BottomNav.jsx";
 export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { deck, loading, error, swipe } = useScholarships();
+  const { deck, loading, error, swipe, reload } = useScholarships();
 
   useEffect(() => {
     if (user && !user.profile_complete) {
@@ -42,7 +42,7 @@ export default function Discover() {
 
       {loading && <p className="page-subtitle">Finding your matches...</p>}
       {error && <p className="error-text">{error}</p>}
-      {!loading && !error && <SwipeDeck deck={deck} onSwipe={swipe} />}
+      {!loading && !error && <SwipeDeck deck={deck} onSwipe={swipe} onRefresh={reload} />}
 
       <BottomNav />
     </div>

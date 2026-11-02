@@ -6,9 +6,12 @@
 // faster to scan and tap on a phone screen.
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { GRADE_LEVELS } from "../constants/gradeLevels.js";
+import InterestSelector from "../components/InterestSelector.jsx";
+import AccountSettings from "../components/AccountSettings.jsx";
+import LegalFooter from "../components/LegalFooter.jsx";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME",
@@ -26,7 +29,7 @@ const INTEREST_OPTIONS = [
   "community service", "leadership", "sports", "business", "healthcare",
 ];
 
-function ChipSelect({ options, selected, onToggle }) {
+function ChipSelect({ options, selected, onToggle, disabled = false }) {
   return (
     <div className="chip-row">
       {options.map((option) => (
@@ -35,6 +38,7 @@ function ChipSelect({ options, selected, onToggle }) {
           type="button"
           className="chip"
           aria-pressed={selected.includes(option)}
+          disabled={disabled}
           onClick={() => onToggle(option)}
         >
           {option}
@@ -49,12 +53,12 @@ export default function ProfileSetup() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    full_name: "",
     gpa: "",
     grade_level: "",
     state: "",
     major: "",
     demographics: [],
+    demographics_consent: false,
     interests: [],
   });
   const [error, setError] = useState(null);
@@ -63,12 +67,12 @@ export default function ProfileSetup() {
   useEffect(() => {
     if (!user) return;
     setForm({
-      full_name: user.full_name || "",
       gpa: user.gpa ?? "",
       grade_level: user.grade_level || "",
       state: user.state || "",
       major: user.major || "",
       demographics: user.demographics || [],
+      demographics_consent: Boolean(user.demographics_consent),
       interests: user.interests || [],
     });
   }, [user]);
@@ -89,6 +93,7 @@ export default function ProfileSetup() {
       await updateProfile({
         ...form,
         gpa: form.gpa === "" ? null : Number(form.gpa),
+        demographics: form.demographics_consent ? form.demographics : [],
       });
       navigate("/");
     } catch (err) {
@@ -102,21 +107,11 @@ export default function ProfileSetup() {
     <div className="screen">
       <h1 className="page-title">Your profile</h1>
       <p className="page-subtitle">
-        This is exactly what the matching engine uses to estimate your odds -- the more accurate,
+        This is exactly what the matching engine uses to estimate your fit: the more accurate,
         the better your matches.
       </p>
 
       <form onSubmit={handleSubmit}>
-        <div className="field-group">
-          <label htmlFor="full_name">Full name</label>
-          <input
-            id="full_name"
-            type="text"
-            value={form.full_name}
-            onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-          />
-        </div>
-
         <div className="field-group">
           <label htmlFor="gpa">GPA (0.0–5.0 scale)</label>
           <input
@@ -182,30 +177,62 @@ export default function ProfileSetup() {
           />
         </div>
 
-        <div className="field-group">
-          <label>Demographics (optional, helps surface targeted scholarships)</label>
-          <ChipSelect
-            options={DEMOGRAPHIC_OPTIONS}
-            selected={form.demographics}
-            onToggle={(v) => toggleChip("demographics", v)}
-          />
-        </div>
+        <fieldset className="field-group field-group--fieldset">
+          <legend>Demographics (optional)</legend>
+          <p className="field-help">
+            Some scholarships are only for specific groups. Sharing this is entirely optional,
+            is only used for matching, and turning it off erases it.
+          </p>
+          <label className="consent-check">
+            <input
+              type="checkbox"
+              checked={form.demographics_consent}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  demographics_consent: e.target.checked,
+                  demographics: e.target.checked ? form.demographics : [],
+                })
+              }
+            />
+            <span>
+              I agree to ScholarMatch using the demographic details I select for matching (see
+              the <Link to="/privacy">Privacy Policy</Link>).
+            </span>
+          </label>
+          {form.demographics_consent && (
+            <ChipSelect
+              options={DEMOGRAPHIC_OPTIONS}
+              selected={form.demographics}
+              onToggle={(v) => toggleChip("demographics", v)}
+            />
+          )}
+        </fieldset>
 
         <div className="field-group">
-          <label>Interests</label>
-          <ChipSelect
-            options={INTEREST_OPTIONS}
-            selected={form.interests}
-            onToggle={(v) => toggleChip("interests", v)}
-          />
+          <span className="field-label" id="interests-label">Interests</span>
+          <div role="group" aria-labelledby="interests-label">
+            <InterestSelector
+              options={INTEREST_OPTIONS}
+              selected={form.interests}
+              onChange={(next) => setForm((prev) => ({ ...prev, interests: next }))}
+            />
+          </div>
         </div>
 
-        {error && <p className="error-text">{error}</p>}
+        {error && (
+          <p className="error-text" role="alert">
+            {error}
+          </p>
+        )}
 
         <button className="primary-button" type="submit" disabled={saving}>
           {saving ? "Saving..." : "Save and find matches"}
         </button>
       </form>
+
+      <AccountSettings />
+      <LegalFooter />
     </div>
   );
 }

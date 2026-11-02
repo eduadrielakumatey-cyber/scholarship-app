@@ -85,9 +85,47 @@ class Scholarship(db.Model):
     # --- Source tracking, used by the scraper to avoid duplicate inserts ---
     source_name = db.Column(db.String(120), nullable=True)     # e.g. "Fastweb", "manual_seed"
     source_url = db.Column(db.String(500), nullable=True)
+    # Separate application link, when the provider's official/info page
+    # (source_url) isn't itself where you apply (e.g. a foundation's
+    # overview page that links out to a portal). NULL means "same as
+    # source_url" -- there is no second link to show.
+    application_url = db.Column(db.String(500), nullable=True)
     external_id = db.Column(db.String(255), nullable=True, index=True)
 
     is_active = db.Column(db.Boolean, default=True)  # set False instead of deleting expired ones
+
+    # --- Link-health tracking (see scraper/link_checker.py) ---
+    # A diagnostic status distinct from is_active: is_active is the single
+    # boolean matching.py actually filters on (unchanged by this column),
+    # while `status` records WHY, so a human/future job can tell "verified
+    # working" apart from "never checked" apart from "confirmed dead."
+    #   active        -- last check succeeded and looked like a real listing
+    #   expired       -- deadline passed but the program looks recurring;
+    #                    still shown (matching.py already excludes anything
+    #                    with a passed deadline on its own) until its next
+    #                    cycle's date is found
+    #   unavailable   -- confirmed dead (404/410/DNS failure/explicit
+    #                    "program discontinued" language) -- also sets
+    #                    is_active=False
+    #   needs_review  -- link check was inconclusive (timeout, redirect
+    #                    loop, non-2xx that isn't clearly "gone") and a
+    #                    human should look rather than the job guessing
+    #   upcoming      -- reserved for a future cycle that hasn't opened yet
+    # Defaults to needs_review, not active: a row that has never been
+    # checked has not earned "active" -- that has to be verified, not
+    # assumed. See migration d9a3f61c8e2b for the one-time backfill logic
+    # applied to rows that existed before this column did.
+    status = db.Column(db.String(20), nullable=False, default="needs_review")
+    last_verified_at = db.Column(db.DateTime, nullable=True)
+
+    # Whether the OPPORTUNITY ITSELF (not the award payout -- see
+    # award_frequency/renewable above, which describe a single winner's
+    # payout schedule) runs again next year. NULL = unknown/not yet
+    # determined. Used by the freshness job to decide which expired-dated
+    # rows are worth re-checking for a reopened next cycle vs. leaving
+    # alone as a one-time award that has simply run its course.
+    is_recurring_program = db.Column(db.Boolean, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -139,4 +177,8 @@ class Scholarship(db.Model):
             "num_awards": self.num_awards,
             "source_name": self.source_name,
             "source_url": self.source_url,
+            "application_url": self.application_url or self.source_url,
+            "status": self.status,
+            "last_verified_at": self.last_verified_at.isoformat() if self.last_verified_at else None,
+            "is_recurring_program": self.is_recurring_program,
         }

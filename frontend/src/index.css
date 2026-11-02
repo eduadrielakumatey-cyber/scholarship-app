@@ -2,15 +2,31 @@
 
 :root {
   --color-bg: #1b1b3a;
-  --color-surface: #fafaf7;
+  --color-surface: #fffdf9;
   --color-ink: #232136;
   --color-ink-soft: #6b6884;
-  --color-on-dark: #f1efe9;
-  --color-on-dark-soft: #a9a6c4;
-  --color-gold: #f2b544;
-  --color-teal: #2ec4b6;
-  --color-coral: #ff6b6b;
+  --color-on-dark: #f5f3ff;
+  --color-on-dark-soft: #b1abd1;
+  --color-gold: #ffb545;
+  --color-gold-2: #ff8a5b;
+  --color-teal: #2fe1c9;
+  --color-teal-2: #34c7ff;
+  --color-coral: #ff5d7a;
+  --color-violet: #8b7bff;
   --color-line: #e4e1d8;
+
+  /* Gradients + glows -- reuse the same handful of accent colors instead
+     of inventing a separate palette per surface, so a gold card, a gold
+     button, and a gold badge all read as "the same gold" at a glance. */
+  --gradient-brand: linear-gradient(135deg, var(--color-gold) 0%, var(--color-coral) 55%, var(--color-violet) 100%);
+  --gradient-primary: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-2) 100%);
+  --gradient-like: linear-gradient(135deg, var(--color-teal) 0%, var(--color-teal-2) 100%);
+  --gradient-card-top: linear-gradient(90deg, var(--color-gold) 0%, var(--color-coral) 50%, var(--color-violet) 100%);
+  --glow-gold: none;
+  --glow-teal: none;
+  --glow-coral: none;
+  --glow-violet: none;
+  --shadow-card: 0 1px 3px rgba(10, 8, 30, 0.25);
   /* One real, deliberately-loaded display face (see index.html) for
      headlines and dollar amounts -- a warm serif fits a scholarship/award
      product better than another generic startup sans, and gives the app a
@@ -32,7 +48,15 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--color-bg);
+  /* Soft blurred color blobs behind the whole app -- a cheap, static way
+     to make a flat dark screen feel alive without touching any layout. */
+  background:
+    radial-gradient(640px circle at 12% -8%, rgba(255, 181, 69, 0.22), transparent 60%),
+    radial-gradient(560px circle at 112% 8%, rgba(139, 123, 255, 0.22), transparent 60%),
+    radial-gradient(560px circle at 50% 115%, rgba(255, 93, 122, 0.16), transparent 60%),
+    linear-gradient(160deg, #1b1b3a 0%, #22194a 50%, #150f2c 100%);
+  background-attachment: fixed;
+  background-color: var(--color-bg);
   color: var(--color-on-dark);
   font-family: var(--font-body);
   -webkit-tap-highlight-color: transparent;
@@ -90,7 +114,10 @@ a {
 }
 
 .brand-accent {
-  color: var(--color-gold);
+  background: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Same perforated-ticket motif as the metrics panel, used as a plain
@@ -136,9 +163,10 @@ a {
   font-size: 1rem;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-on-dark);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 /* The <select> box itself picks up the dark styling above, but its
@@ -156,8 +184,10 @@ a {
 
 .field-group input:focus,
 .field-group select:focus {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--color-gold);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 4px rgba(255, 181, 69, 0.18);
 }
 
 .chip-row {
@@ -172,13 +202,102 @@ a {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-on-dark);
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .chip[aria-pressed="true"] {
+  background: var(--gradient-primary);
+  color: var(--color-ink);
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: var(--glow-gold);
+}
+
+.chip {
+  transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.chip:hover {
+  border-color: rgba(255, 181, 69, 0.5);
+}
+
+.chip:active {
+  transform: scale(0.94);
+}
+
+/* Custom (user-typed) interest chips -- same base shape as predefined
+   chips so they read as part of one selector, not a separate feature,
+   with a small "x" to remove and a teal outline instead of gold fill so
+   a glance can still tell "typed by me" from "picked from the list." */
+.chip--custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(46, 196, 182, 0.16);
+  color: var(--color-teal);
+  border: 1px solid rgba(46, 196, 182, 0.4);
+  font-weight: 600;
+}
+
+.chip__remove {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.chip__remove:hover {
+  opacity: 1;
+}
+
+.chip--add {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  color: var(--color-on-dark-soft);
+}
+
+.chip--add:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+.chip-input-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 220px;
+}
+
+.chip-input {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-gold);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-on-dark);
+  min-width: 160px;
+  flex: 1 1 160px;
+}
+
+.chip--confirm {
   background: var(--color-gold);
   color: var(--color-ink);
   font-weight: 600;
+  border: none;
+  flex-shrink: 0;
+}
+
+.chip-input::placeholder {
+  color: var(--color-on-dark-soft);
+}
+
+.chip-input:focus {
+  outline: none;
 }
 
 .primary-button {
@@ -188,14 +307,27 @@ a {
   padding: 14px 20px;
   border-radius: 14px;
   border: none;
-  background: var(--color-gold);
+  background: var(--gradient-primary);
   color: var(--color-ink);
   width: 100%;
+  box-shadow: var(--glow-gold);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: none;
+}
+
+.primary-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .primary-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .text-link-button {
@@ -204,6 +336,11 @@ a {
   color: var(--color-teal);
   font-size: 0.9rem;
   padding: 8px 0;
+  transition: color 0.15s ease;
+}
+
+.text-link-button:hover {
+  color: var(--color-teal-2);
 }
 
 .error-text {
@@ -252,15 +389,29 @@ a {
 .swipe-card {
   position: absolute;
   inset: 0;
-  background: var(--color-surface);
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-surface) 100%);
   color: var(--color-ink);
   border-radius: var(--radius-card);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   touch-action: none;
   user-select: none;
+}
+
+/* Thin brand-gradient stripe along the top edge -- the one signature
+   detail that makes every card instantly recognizable as "this app"
+   even in a quick screenshot or demo. */
+.swipe-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--gradient-card-top);
+  z-index: 1;
 }
 
 .swipe-card--behind {
@@ -285,7 +436,10 @@ a {
   font-family: var(--font-display);
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--color-ink);
+  background: linear-gradient(135deg, #d68a00 0%, #ff6a3d 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .card-deadline {
@@ -325,11 +479,38 @@ a {
   font-size: 0.72rem;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(27, 27, 58, 0.08);
+  background: rgba(27, 27, 58, 0.06);
   color: var(--color-ink-soft);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
   border: 1px solid var(--color-line);
+}
+
+/* Cycled tint per tag (assigned by position in SwipeCard.jsx) so a card's
+   tag row reads as colorful confetti at a glance instead of a flat gray
+   list -- while staying within the app's own four accent colors. */
+.card-tag--a {
+  background: rgba(255, 181, 69, 0.14);
+  color: #8a5208;
+  border-color: rgba(255, 181, 69, 0.35);
+}
+
+.card-tag--b {
+  background: rgba(47, 225, 201, 0.14);
+  color: #0f7a6d;
+  border-color: rgba(47, 225, 201, 0.35);
+}
+
+.card-tag--c {
+  background: rgba(255, 93, 122, 0.13);
+  color: #a82d45;
+  border-color: rgba(255, 93, 122, 0.32);
+}
+
+.card-tag--d {
+  background: rgba(139, 123, 255, 0.14);
+  color: #5b48d9;
+  border-color: rgba(139, 123, 255, 0.32);
 }
 
 /* ============================================================
@@ -337,7 +518,7 @@ a {
    ============================================================ */
 
 .ticket-stub {
-  background: var(--color-ink);
+  background: linear-gradient(165deg, #262346 0%, var(--color-ink) 60%, #1c1a30 100%);
   color: var(--color-on-dark);
   padding: 14px 18px calc(14px + var(--safe-bottom));
   position: relative;
@@ -470,6 +651,12 @@ a {
 .urgency-badge--critical {
   background: var(--color-coral);
   color: var(--color-ink);
+  animation: urgent-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes urgent-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 93, 122, 0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 93, 122, 0); }
 }
 
 .stub-meta-row {
@@ -582,18 +769,71 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
 }
 
+.round-button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.round-button:active {
+  transform: scale(0.88);
+  transition-duration: 0.05s;
+}
+
+.round-button:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 4px;
+}
+
+/* Icon colors are darker shades of the brand coral/teal: the bright
+   versions sit at 2.9:1 and 1.6:1 on the light button and fail the 3:1
+   minimum for meaningful icons (WCAG 1.4.11). */
 .round-button--pass {
   background: var(--color-surface);
-  color: var(--color-coral);
+  color: #c92c4f;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .round-button--like {
   background: var(--color-surface);
-  color: var(--color-teal);
+  color: #0f7a6d;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.round-button--like-filled {
+  background: var(--gradient-like);
+  color: var(--color-ink);
+  box-shadow: var(--glow-teal);
+}
+
+/* Confirm animations -- play once when a swipe is committed (button
+   click or drag past the threshold), on top of whatever hover/active
+   transform is already happening. Neutralized for reduced-motion users
+   by the global `prefers-reduced-motion` rule in this file, which zeroes
+   every animation/transition duration. */
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.45); }
+  60% { transform: scale(0.92); }
+  100% { transform: scale(1.15); }
+}
+
+.round-button--pop {
+  animation: heart-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes pass-punch {
+  0% { transform: scale(1) rotate(0deg); }
+  40% { transform: scale(0.78) rotate(-14deg); }
+  100% { transform: scale(0.7) rotate(0deg); opacity: 0.5; }
+}
+
+.round-button--punch {
+  animation: pass-punch 0.32s ease forwards;
 }
 
 .swipe-hint {
@@ -667,6 +907,24 @@ a {
   margin-bottom: 8px;
 }
 
+.empty-deck__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.empty-deck__action {
+  text-align: center;
+}
+
+.empty-deck__action.primary-button {
+  margin-bottom: 4px;
+}
+
 /* ============================================================
    Bottom navigation
    ============================================================ */
@@ -694,16 +952,25 @@ a {
   gap: 2px;
   color: var(--color-on-dark-soft);
   font-size: 0.7rem;
-  padding: 4px 18px;
-  border-radius: 12px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
 .bottom-nav__tab.is-active {
   color: var(--color-gold);
+  background: rgba(255, 181, 69, 0.12);
+  transform: translateY(-2px);
 }
 
 .bottom-nav__icon {
   font-size: 1.3rem;
+  filter: drop-shadow(0 0 0 transparent);
+  transition: filter 0.15s ease;
+}
+
+.bottom-nav__tab.is-active .bottom-nav__icon {
+  filter: none;
 }
 
 /* ============================================================
@@ -711,11 +978,20 @@ a {
    ============================================================ */
 
 .saved-card {
-  background: var(--color-surface);
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-surface) 100%);
   color: var(--color-ink);
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 14px;
+  box-shadow: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+@media (hover: hover) {
+  .saved-card:hover {
+    transform: translateY(-3px);
+    box-shadow: none;
+  }
 }
 
 .saved-card__top {
@@ -729,6 +1005,10 @@ a {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.1rem;
+  background: linear-gradient(135deg, #d68a00 0%, #ff6a3d 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .saved-card__deadline {
@@ -765,6 +1045,13 @@ a {
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 0.8rem;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.saved-card__remove:hover {
+  border-color: var(--color-coral);
+  color: var(--color-coral);
+  background: rgba(255, 93, 122, 0.06);
 }
 
 .empty-state {
@@ -893,13 +1180,19 @@ a {
   transition: all 0.15s ease;
 }
 
+.status-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-gold);
+}
+
 .status-btn:active {
   transform: scale(0.95);
 }
 
 .status-btn--active {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(255, 181, 69, 0.08);
   font-weight: 700;
+  box-shadow: none;
 }
 
 .status-btn__emoji {
@@ -909,4 +1202,858 @@ a {
 .status-btn__label {
   font-size: 0.62rem;
   font-weight: 500;
+}
+
+/* ============================================================
+   Stats page ("Stats for Idiots")
+   ============================================================ */
+
+.stats-section {
+  margin-bottom: 26px;
+}
+
+.stat-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.stat-tile {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 3px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+@media (hover: hover) {
+  .stat-tile:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.stat-tile--gold {
+  border-left-color: var(--color-gold);
+  background: linear-gradient(135deg, rgba(255, 181, 69, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.stat-tile--teal {
+  border-left-color: var(--color-teal);
+  background: linear-gradient(135deg, rgba(47, 225, 201, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.stat-tile--coral {
+  border-left-color: var(--color-coral);
+  background: linear-gradient(135deg, rgba(255, 93, 122, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.stat-tile__value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-on-dark);
+}
+
+.stat-tile__value--gold { color: var(--color-gold); }
+.stat-tile__value--teal { color: var(--color-teal); }
+.stat-tile__value--coral { color: var(--color-coral); }
+
+.stat-tile__label {
+  font-size: 0.72rem;
+  color: var(--color-on-dark-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stats-plain-sentence {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-on-dark-soft);
+  margin: 8px 0 0;
+}
+
+.stats-plain-sentence strong {
+  color: var(--color-on-dark);
+}
+
+.stats-donut-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.save-donut {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.4s ease;
+  box-shadow: none;
+}
+
+.save-donut__hole {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-donut__value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-on-dark);
+}
+
+.save-donut__label {
+  font-size: 0.6rem;
+  color: var(--color-on-dark-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.deadline-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deadline-list__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+  gap: 12px;
+}
+
+.deadline-list__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.deadline-list__title {
+  font-size: 0.85rem;
+  color: var(--color-on-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deadline-list__amount {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-on-dark-soft);
+}
+
+.deadline-list__days {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-on-dark-soft);
+  flex-shrink: 0;
+}
+
+.deadline-list__days--soon {
+  color: var(--color-coral);
+}
+
+.stats-insight-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stats-insight-list li {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-on-dark);
+  background: rgba(242, 181, 68, 0.08);
+  border-left: 3px solid var(--color-gold);
+  padding: 10px 14px;
+  border-radius: 0 10px 10px 0;
+}
+
+/* Link out to /how-it-works from inside the dark ticket-stub panel. */
+.stub-how-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-teal);
+}
+
+.stub-how-link:hover {
+  color: var(--color-teal-2);
+}
+
+/* ============================================================
+   HOW IT WORKS PAGE
+   ============================================================ */
+
+.hiw-back {
+  padding-left: 0;
+  margin-bottom: 4px;
+  align-self: flex-start;
+}
+
+.hiw-hero {
+  margin-bottom: 8px;
+}
+
+.hiw-hero-title {
+  font-size: 1.65rem;
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.hiw-hero-subtitle {
+  margin-bottom: 22px;
+}
+
+.hiw-hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 10px 0 8px;
+}
+
+.hiw-hero-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 84px;
+}
+
+.hiw-hero-node__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+
+.hiw-hero-node__label {
+  font-size: 0.7rem;
+  color: var(--color-on-dark-soft);
+  text-align: center;
+  font-weight: 600;
+}
+
+.hiw-hero-arrow {
+  font-size: 1.3rem;
+  color: var(--color-gold);
+  opacity: 0.85;
+}
+
+.hiw-hero-match-ring {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: conic-gradient(var(--color-teal) 0% 87%, rgba(255, 255, 255, 0.12) 87% 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--glow-teal);
+  flex-shrink: 0;
+}
+
+.hiw-hero-match-ring__hole {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hiw-hero-match-ring__value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--color-teal), var(--color-gold));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hiw-hero-match-ring__label {
+  font-size: 0.62rem;
+  color: var(--color-on-dark-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.hiw-hero-caption {
+  text-align: center;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--color-on-dark-soft);
+  margin: 4px 0 0;
+}
+
+.hiw-section {
+  margin: 34px 0;
+}
+
+.hiw-section-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--color-on-dark);
+  margin: 0 0 6px;
+}
+
+.hiw-section-lede {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-on-dark-soft);
+  margin: 0 0 16px;
+}
+
+.hiw-section-footnote {
+  font-size: 0.78rem;
+  color: var(--color-on-dark-soft);
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+/* Factor cards -- same dense 2-up grid rhythm as .stat-tile-grid */
+.hiw-factor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 380px) {
+  .hiw-factor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hiw-factor-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+@media (hover: hover) {
+  .hiw-factor-card:hover {
+    transform: translateY(-2px);
+    box-shadow: none;
+  }
+}
+
+.hiw-factor-card__icon {
+  font-size: 1.6rem;
+}
+
+.hiw-factor-badge {
+  align-self: flex-start;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.hiw-factor-badge--gate {
+  background: rgba(255, 93, 122, 0.16);
+  color: var(--color-coral);
+}
+
+.hiw-factor-badge--scored {
+  background: rgba(47, 225, 201, 0.16);
+  color: var(--color-teal);
+}
+
+.hiw-factor-badge--mixed {
+  background: rgba(255, 181, 69, 0.16);
+  color: var(--color-gold);
+}
+
+.hiw-factor-badge--neutral {
+  background: rgba(139, 123, 255, 0.16);
+  color: var(--color-violet);
+}
+
+.hiw-factor-card__title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-on-dark);
+  margin: 0;
+}
+
+.hiw-factor-card__text {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-on-dark-soft);
+  margin: 0;
+}
+
+/* Step-by-step vertical timeline */
+.hiw-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hiw-timeline__step {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.hiw-timeline__step:last-child {
+  padding-bottom: 0;
+}
+
+.hiw-timeline__step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(var(--color-gold), var(--color-violet));
+  opacity: 0.35;
+}
+
+.hiw-timeline__marker {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--glow-gold);
+  z-index: 1;
+}
+
+.hiw-timeline__content {
+  padding-top: 3px;
+}
+
+.hiw-timeline__title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-on-dark);
+  margin: 0 0 4px;
+}
+
+.hiw-timeline__text {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-on-dark-soft);
+  margin: 0;
+}
+
+/* Score-meaning tier cards */
+.hiw-tier-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hiw-tier-card {
+  border-radius: 14px;
+  padding: 16px 18px;
+  border-left: 4px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hiw-tier-card--high {
+  border-left-color: var(--color-teal);
+  background: linear-gradient(135deg, rgba(47, 225, 201, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.hiw-tier-card--medium {
+  border-left-color: var(--color-gold);
+  background: linear-gradient(135deg, rgba(255, 181, 69, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.hiw-tier-card--low {
+  border-left-color: var(--color-coral);
+  background: linear-gradient(135deg, rgba(255, 93, 122, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.hiw-tier-card__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-on-dark);
+  margin-right: 10px;
+}
+
+.hiw-tier-card__range {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-on-dark-soft);
+}
+
+.hiw-tier-card__text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-on-dark);
+  margin: 8px 0 4px;
+}
+
+.hiw-tier-card__real {
+  font-size: 0.7rem;
+  color: var(--color-on-dark-soft);
+  font-style: italic;
+  margin: 0;
+}
+
+.hiw-callout {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-on-dark);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+/* Expected-value worked example -- reuses the ticket-stub gradient and its
+   stub-value color tokens so it reads as "the same numbers you see on a
+   real card," not a separately-styled mockup. */
+.hiw-ev-card {
+  background: linear-gradient(165deg, #262346 0%, var(--color-ink) 60%, #1c1a30 100%);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-top: 4px;
+  color: var(--color-on-dark);
+}
+
+.hiw-ev-card__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-on-dark-soft);
+  margin: 0 0 10px;
+}
+
+.hiw-ev-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 9px 0;
+  font-size: 0.82rem;
+  color: var(--color-on-dark-soft);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.hiw-ev-card__row:last-child {
+  border-bottom: none;
+}
+
+.hiw-ev-card__row--result {
+  font-weight: 700;
+  color: var(--color-on-dark);
+}
+
+.hiw-why-example {
+  background: linear-gradient(165deg, #262346 0%, var(--color-ink) 60%, #1c1a30 100%);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-top: 4px;
+}
+
+.hiw-why-example__caption {
+  font-size: 0.72rem;
+  color: var(--color-on-dark-soft);
+  font-style: italic;
+  margin: 10px 0 0;
+}
+
+.hiw-disclaimer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.hiw-disclaimer__icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.hiw-disclaimer p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--color-on-dark-soft);
+}
+
+/* ============================================================
+   Legal pages, footer, consents, account controls
+   ============================================================ */
+
+/* Links inside running text get an underline: the global `a` reset
+   strips it, and color alone isn't enough to tell a link apart
+   (WCAG 1.4.1). */
+.legal-body a,
+.legal-footer a,
+.consent-check a,
+.storage-notice a,
+.field-help a {
+  color: var(--color-teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-page > .text-link-button {
+  align-self: flex-start;
+}
+
+.legal-page h2 {
+  font-size: 1.1rem;
+  margin: 24px 0 8px;
+}
+
+.legal-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-on-dark);
+}
+
+.legal-body ul {
+  padding-left: 20px;
+}
+
+.legal-body li {
+  margin-bottom: 6px;
+}
+
+.legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin: 8px 0;
+}
+
+.legal-table th,
+.legal-table td {
+  text-align: left;
+  padding: 8px 10px 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  vertical-align: top;
+}
+
+/* Long storage-key names would otherwise force the table wider than a phone. */
+.legal-table td:first-child {
+  overflow-wrap: anywhere;
+}
+
+.legal-footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.78rem;
+  color: var(--color-on-dark-soft);
+}
+
+.legal-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+.legal-footer__links a {
+  /* Comfortable tap target without changing the visual size of the text. */
+  display: inline-block;
+  padding: 6px 0;
+}
+
+.legal-footer__business {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+.consent-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.consent-check,
+.field-group .consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--color-on-dark);
+  cursor: pointer;
+}
+
+.consent-check input {
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--color-gold);
+}
+
+.field-group--fieldset {
+  border: none;
+  padding: 0;
+  margin-left: 0;
+  margin-right: 0;
+  min-width: 0;
+}
+
+.field-group--fieldset legend,
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-on-dark-soft);
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.field-help {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-on-dark-soft);
+  margin: 0 0 10px;
+}
+
+.account-settings {
+  margin-top: 36px;
+}
+
+.account-settings__title {
+  font-size: 1.1rem;
+  margin: 0 0 6px;
+}
+
+.account-settings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.account-settings__delete {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 93, 122, 0.45);
+  background: rgba(255, 93, 122, 0.08);
+  margin-bottom: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.secondary-button {
+  font-size: 0.9rem;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--color-on-dark);
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-button--danger {
+  border-color: rgba(255, 93, 122, 0.6);
+  color: var(--color-coral);
+}
+
+.storage-notice {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(84px + var(--safe-bottom));
+  width: calc(100% - 32px);
+  max-width: calc(var(--max-content-width) - 32px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--color-ink);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--color-on-dark);
+}
+
+.storage-notice p {
+  margin: 0;
+  flex: 1;
+}
+
+.storage-notice__button {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--gradient-primary);
+  color: var(--color-ink);
+  font-weight: 600;
 }

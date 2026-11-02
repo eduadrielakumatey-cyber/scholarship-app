@@ -24,6 +24,14 @@ scholarships, independent of swipe history) is used to compute
 percentiles everywhere -- Discover, Saved, and the detail view -- so a
 scholarship's Application Value score doesn't silently change meaning
 depending on which screen it's viewed from.
+
+RECOMMENDATION FRESHNESS -- get_swipe_deck excludes anything the user
+has already swiped on, EXCEPT that a "pass" can expire. See
+_reentry_ids() below for the exact rule: a skip only gets reconsidered
+if the user's interests have since grown to include something that
+scholarship is actually tagged with. "save"/"like" never expire -- those
+are a deliberate positive choice, not a queue the user should be pulled
+back into.
 """
 
 from __future__ import annotations
@@ -131,22 +139,83 @@ def _finalize(scholarship, base: dict, ev_pool: list[float], affinities: dict) -
     return payload
 
 
+def _normalized_interests(user) -> set[str]:
+    return {t.strip().lower() for t in (user.interests or []) if t and t.strip()}
+
+
+def _reentry_ids(current_interests: set[str], passed_rows: list[tuple]) -> set[int]:
+    """
+    Decides which "pass"-ed scholarships should re-enter the deck.
+
+    For each passed scholarship, `new_tags` is whatever's in the user's
+    CURRENT interests that wasn't there at pass-time (interest_snapshot).
+    If that's empty, nothing about this user's interests has changed
+    since they passed -- stays excluded. If it's non-empty, the pass only
+    "expires" when the scholarship itself is tagged with one of those NEW
+    interests -- i.e. the skip was made without the information that now
+    makes it relevant, so it deserves a second look.
+
+    This is deliberately narrow: adding one new interest does not dump
+    the user's entire pass history back into the deck (no spam), only
+    the subset that's actually about the thing they just added. A row
+    with no snapshot (interest_snapshot is NULL -- passed before this
+    column existed) is treated as an unknown baseline, so any current
+    interest counts as "new" for it; that's a one-time reconciliation,
+    not a recurring re-show.
+    """
+    reentry = set()
+    for scholarship_id, snapshot, sch_interests in passed_rows:
+        baseline = {t.strip().lower() for t in (snapshot or [])}
+        new_tags = current_interests - baseline
+        if not new_tags:
+            continue
+        sch_tags = {t.strip().lower() for t in (sch_interests or [])}
+        if sch_tags & new_tags:
+            reentry.add(scholarship_id)
+    return reentry
+
+
+def _excluded_scholarship_ids(user) -> set[int]:
+    """
+    Every scholarship id that should be hidden from this user's deck right
+    now: everything they've saved/liked (permanent), plus everything
+    they've passed on that hasn't earned reentry (see _reentry_ids).
+    """
+    rows = (
+        db.session.query(
+            Interaction.scholarship_id, Interaction.action,
+            Interaction.interest_snapshot, Scholarship.interests,
+        )
+        .join(Scholarship, Scholarship.id == Interaction.scholarship_id)
+        .filter(Interaction.user_id == user.id)
+        .all()
+    )
+
+    permanent = {r.scholarship_id for r in rows if r.action in ("save", "like")}
+    passed_rows = [
+        (r.scholarship_id, r.interest_snapshot, r.interests) for r in rows if r.action == "pass"
+    ]
+    passed_ids = {sid for sid, _, _ in passed_rows}
+    reentry = _reentry_ids(_normalized_interests(user), passed_rows)
+
+    return permanent | (passed_ids - reentry)
+
+
 def get_swipe_deck(user, limit: int = 25) -> list[dict]:
     """
     Returns scored, ranked scholarship dicts for the next batch of swipe
-    cards. Excludes anything the user has already swiped on (like/pass/
-    save) and anything inactive or past its deadline. Ineligible
+    cards. Excludes anything the user has saved/liked, and anything
+    they've passed on that hasn't earned reentry under the freshness rule
+    above, plus anything inactive or past its deadline. Ineligible
     candidates are dropped entirely -- Layer 1 (Hard Eligibility) never
     lets them reach ranking.
     """
     today = date.today()
-    already_seen_ids = [
-        row.scholarship_id for row in Interaction.query.filter_by(user_id=user.id).all()
-    ]
+    excluded_ids = _excluded_scholarship_ids(user)
 
     query = _active_not_expired_query(today)
-    if already_seen_ids:
-        query = query.filter(~Scholarship.id.in_(already_seen_ids))
+    if excluded_ids:
+        query = query.filter(~Scholarship.id.in_(excluded_ids))
     candidates = query.all()
 
     affinities = preferences.get_tag_affinities(user)
@@ -186,3 +255,19 @@ def score_saved_list(user, scholarships: list[Scholarship]) -> list[dict]:
         base = bases_by_id.get(scholarship.id) or calculate_scores(user, scholarship, today=today)
         results.append(_finalize(scholarship, base, ev_pool, affinities))
     return results
+
+
+def get_match_counts(user, strong_threshold: float = 70.0) -> dict:
+    """
+    Used by the stats page ("You currently have N scholarships that
+    strongly match your profile"). Reuses _build_reference -- the same
+    eligible-candidate pool the deck/saved/detail screens score against --
+    so this number can never disagree with what the user actually sees
+    when they open Discover. Independent of swipe history on purpose:
+    it answers "how many things fit me right now," not "how many are
+    left in my queue."
+    """
+    bases_by_id, _ev_pool, _affinities, _today = _build_reference(user)
+    eligible_bases = [b for b in bases_by_id.values() if b["eligible"]]
+    strong = sum(1 for b in eligible_bases if b["match_quality"]["score"] >= strong_threshold)
+    return {"eligible_count": len(eligible_bases), "strong_match_count": strong}

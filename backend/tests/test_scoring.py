@@ -232,6 +232,37 @@ class TestMatchQuality:
         interest = next(c for c in result["components"] if c["name"] == "Interest alignment")
         assert interest["score"] == 25.0  # 1 of 4
 
+    def test_niche_interest_credits_its_broader_category(self):
+        """A custom interest like "semiconductor design" has no exact
+        match against a scholarship tagged just "engineering" -- but it
+        IS a form of engineering, so interest_taxonomy.expand() should
+        still credit it instead of scoring zero."""
+        user = make_user(interests=["semiconductor design"])
+        scholarship = make_scholarship(interests=["engineering"])
+        result = match_quality(user, scholarship)
+        interest = next(c for c in result["components"] if c["name"] == "Interest alignment")
+        assert interest["score"] == 100.0
+        assert "related interest" in interest["reason"]
+
+    def test_broader_category_credit_does_not_double_count_exact_match(self):
+        # "coding" maps to "computer science", but the scholarship already
+        # has an exact "coding" match -- it shouldn't also get counted a
+        # second time via expansion.
+        user = make_user(interests=["coding"])
+        scholarship = make_scholarship(interests=["coding", "computer science"])
+        result = match_quality(user, scholarship)
+        interest = next(c for c in result["components"] if c["name"] == "Interest alignment")
+        assert interest["score"] == 100.0  # both tags credited, no more no less
+
+    def test_unrelated_niche_interest_still_scores_zero(self):
+        # "welding" has no taxonomy path to "art" -- expansion must not
+        # manufacture a relationship that isn't there.
+        user = make_user(interests=["welding"])
+        scholarship = make_scholarship(interests=["art"])
+        result = match_quality(user, scholarship)
+        interest = next(c for c in result["components"] if c["name"] == "Interest alignment")
+        assert interest["score"] == 0.0
+
     def test_sparse_criteria_scholarship_does_not_inflate_score(self):
         """The core Layer 2 bug fix: a scholarship with almost no listed
         criteria should NOT be able to out-score a scholarship that

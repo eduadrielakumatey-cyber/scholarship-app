@@ -2,24 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- viewport-fit=cover + maximum-scale=1 keep the swipe gestures from
-         fighting with the browser's own pinch-zoom on mobile -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
-    />
+    <!-- No maximum-scale/user-scalable lock: blocking pinch-zoom fails
+         WCAG 1.4.4 for low-vision users. The swipe card sets
+         touch-action itself, so gestures still don't fight the browser. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#1B1B3A" />
     <title>ScholarMatch</title>
-    <!-- One deliberate display face for headlines and dollar amounts --
-         everything else uses system fonts on purpose (fast, native-feeling,
-         no dependency for the parts where personality matters less than
-         legibility of a long scholarship description). -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600;700&display=swap"
-      rel="stylesheet"
+    <meta
+      name="description"
+      content="ScholarMatch: swipe through scholarships matched to your profile. Free, no ads, no tracking."
     />
+    <!-- The one display face (Libre Franklin) is self-hosted via
+         @fontsource, imported in src/main.jsx. -->
   </head>
   <body>
     <div id="root"></div>

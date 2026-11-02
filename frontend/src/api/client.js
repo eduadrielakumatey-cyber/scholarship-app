@@ -42,8 +42,12 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 }
 
 // --- Auth ---
-export const signup = (email, password) =>
-  request("/api/auth/signup", { method: "POST", body: { email, password }, auth: false });
+export const signup = (email, password, consents) =>
+  request("/api/auth/signup", {
+    method: "POST",
+    body: { email, password, ...consents },
+    auth: false,
+  });
 
 export const login = (email, password) =>
   request("/api/auth/login", { method: "POST", body: { email, password }, auth: false });
@@ -65,3 +69,11 @@ export const getSaved = () => request("/api/saved");
 export const unsaveScholarship = (id) => request(`/api/saved/${id}`, { method: "DELETE" });
 export const updateScholarshipStatus = (id, status) =>
   request(`/api/saved/${id}/status`, { method: "PATCH", body: { status } });
+
+// --- Account (privacy controls) ---
+export const exportMyData = () => request("/api/account/export");
+export const deleteAccount = (password) =>
+  request("/api/account", { method: "DELETE", body: { password } });
+
+// --- Stats ---
+export const getStats = () => request("/api/stats");

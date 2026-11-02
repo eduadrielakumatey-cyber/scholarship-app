@@ -8,20 +8,24 @@ needs: GPA, grade level, state, demographics, interests, major.
   PUT  /api/profile     -> update one or more profile fields
 """
 
+from datetime import datetime
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
 from app.models import User
-from app.utils.validators import is_valid_grade_level, is_valid_state
+from app.utils.validators import is_valid_grade_level, is_valid_state, normalize_interests
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/api/profile")
 
 # Only these fields can be mass-updated from the request body. Whitelisting
 # protects against someone trying to PUT {"id": 999} and hijacking a
 # different row, or PUT {"password_hash": "..."} to bypass the auth flow.
+#
+# full_name is deliberately not here: the matcher never uses it, so we
+# don't collect it (data minimization).
 ALLOWED_FIELDS = {
-    "full_name",
     "gpa",
     "grade_level",
     "state",
@@ -52,9 +56,28 @@ def update_profile():
     if "state" in data and data["state"] and not is_valid_state(data["state"]):
         return jsonify({"error": "state must be a valid two-letter US state code"}), 400
 
+    # Demographics are sensitive, so they're only stored with an explicit
+    # opt-in. Withdrawing consent erases whatever was saved.
+    if "demographics_consent" in data:
+        if data["demographics_consent"] is True:
+            if user.demographics_consent_at is None:
+                user.demographics_consent_at = datetime.utcnow()
+        else:
+            user.demographics_consent_at = None
+            user.demographics = []
+    if data.get("demographics") and user.demographics_consent_at is None:
+        return jsonify({"error": "please confirm you agree to share demographic information"}), 400
+
     for field in ALLOWED_FIELDS:
+        if field == "demographics" and user.demographics_consent_at is None:
+            continue
         if field in data:
             setattr(user, field, data[field])
+
+    # Normalize after the generic assignment above so the whitelisted/typed
+    # value always wins over this cleanup, never the other way around.
+    if "interests" in data:
+        user.interests = normalize_interests(data["interests"])
 
     if "gpa" in data and data["gpa"] is not None:
         try:

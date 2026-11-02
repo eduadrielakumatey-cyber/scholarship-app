@@ -34,6 +34,15 @@ class User(db.Model):
     interests = db.Column(ARRAY(db.String), default=list)     # e.g. ["robotics", "art"]
     major = db.Column(db.String(120), nullable=True)          # intended college major
 
+    # --- Consent records ---
+    # When (and to which version of the Terms/Privacy Policy) the student
+    # agreed at signup, plus when they separately opted in to sharing
+    # demographic data -- that's sensitive (race, disability, LGBTQ+), so it
+    # gets its own explicit opt-in instead of riding on the general terms.
+    terms_accepted_at = db.Column(db.DateTime, nullable=True)
+    terms_version = db.Column(db.String(20), nullable=True)
+    demographics_consent_at = db.Column(db.DateTime, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -65,4 +74,5 @@ class User(db.Model):
             "interests": self.interests or [],
             "major": self.major,
             "profile_complete": self.profile_is_complete(),
+            "demographics_consent": self.demographics_consent_at is not None,
         }

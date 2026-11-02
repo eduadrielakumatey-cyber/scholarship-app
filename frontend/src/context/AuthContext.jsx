@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
     return loggedInUser;
   }
 
-  async function signup(email, password) {
-    const { token, user: newUser } = await api.signup(email, password);
+  async function signup(email, password, consents) {
+    const { token, user: newUser } = await api.signup(email, password, consents);
     api.setToken(token);
     setUser(newUser);
     return newUser;
