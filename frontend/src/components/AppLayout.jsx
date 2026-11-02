@@ -22,7 +22,6 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
-import Guide from "./guide/Guide.jsx";
 import { TOUR_DONE_KEY } from "./guide/GuideTour.jsx";
 
 const NAV_ITEMS = [
@@ -130,15 +129,9 @@ export default function AppLayout({ children }) {
           ))}
         </nav>
 
-        <div className="app-sidebar__helper">
-          <Guide mood="happy" size={56} />
-          <div>
-            <p className="app-sidebar__helper-title">Need a hand?</p>
-            <button type="button" className="app-sidebar__helper-link" onClick={replayTour}>
-              <PlayCircle size={16} strokeWidth={2.4} aria-hidden="true" /> Take the tour with Scout
-            </button>
-          </div>
-        </div>
+        <button type="button" className="app-sidebar__tour" onClick={replayTour}>
+          <PlayCircle size={16} strokeWidth={2.4} aria-hidden="true" /> Replay Scout's tour
+        </button>
 
         <div className="app-sidebar__account">
           {user && <span className="app-sidebar__email">{user.email}</span>}

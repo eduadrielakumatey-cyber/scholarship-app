@@ -160,7 +160,7 @@ export default function ScholarshipMetrics({ scholarship }) {
       </p>
 
       <Link to="/how-it-works" className="stub-how-link">
-        How we calculate this →
+        How we calculate this
       </Link>
     </div>
   );

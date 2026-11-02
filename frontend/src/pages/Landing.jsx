@@ -138,7 +138,6 @@ function DemoDeck({ cards }) {
       <div className="demo-deck__stack">
         {done ? (
           <div className="demo-card demo-card--end">
-            <p className="demo-card__eyebrow">That's the demo</p>
             <h3>Your real deck is ranked for you</h3>
             <p>
               Tell us your grade, state and interests, and every card is sorted by how well you fit
@@ -373,8 +372,7 @@ function HowItWorksSteps({ preview }) {
 
   return (
     <section id="how" className="landing-section" onPointerDown={() => setPaused(true)}>
-      <p className="landing-eyebrow">How it works</p>
-      <h2 className="landing-h2">Match, swipe, apply</h2>
+      <h2 className="landing-h2">How it works</h2>
       <div className="steps">
         <ol className="steps__list">
           {STEPS.map((s, i) => (
@@ -456,11 +454,6 @@ export default function Landing() {
 
       <section className="landing-hero">
         <div className="landing-hero__copy">
-          {preview && (
-            <p className="landing-pill">
-              <ShieldCheck size={15} /> {preview.live_count} open scholarships, links checked
-            </p>
-          )}
           <h1 className="landing-h1">
             Scholarships you can <span className="landing-underline">actually win</span>
           </h1>
@@ -475,6 +468,14 @@ export default function Landing() {
             </Link>
             <a href="#how" className="landing-btn landing-btn--ghost landing-btn--lg">See how it works</a>
           </div>
+          {preview && (
+            <p className="landing-note">
+              <ShieldCheck size={16} aria-hidden="true" />
+              {preview.live_count} scholarships open right now, worth{" "}
+              {formatMoney(preview.total_value, { short: true })} combined. Every link goes to the
+              provider's own site.
+            </p>
+          )}
         </div>
         <div className="landing-hero__demo">
           {cards.length > 0 ? (
@@ -495,33 +496,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {preview && (
-        <section className="landing-stats" aria-label="Catalog right now">
-          <div className="landing-stat">
-            <span className="landing-stat__value">{preview.live_count}</span>
-            <span className="landing-stat__label">scholarships open now</span>
-          </div>
-          <div className="landing-stat">
-            <span className="landing-stat__value">{formatMoney(preview.total_value, { short: true })}</span>
-            <span className="landing-stat__label">in total awards listed</span>
-          </div>
-          <div className="landing-stat">
-            <span className="landing-stat__value">{preview.rolling_count}</span>
-            <span className="landing-stat__label">with rolling deadlines</span>
-          </div>
-          <div className="landing-stat">
-            <span className="landing-stat__value">$0</span>
-            <span className="landing-stat__label">to use, ever</span>
-          </div>
-        </section>
-      )}
-
       <HowItWorksSteps preview={preview} />
 
       {preview?.due_soon?.length > 0 && (
         <section id="due" className="landing-section">
-          <p className="landing-eyebrow">Due soon</p>
-          <h2 className="landing-h2">Don't let these slip by</h2>
+          <h2 className="landing-h2">Deadlines coming up</h2>
           <ul className="due-list">
             {preview.due_soon.map((c) => {
               const days = daysLeft(c.deadline);
@@ -546,8 +525,7 @@ export default function Landing() {
       )}
 
       <section id="faq" className="landing-section">
-        <p className="landing-eyebrow">FAQ</p>
-        <h2 className="landing-h2">Good questions</h2>
+        <h2 className="landing-h2">Questions</h2>
         <div className="faq">
           {FAQ.map((f) => (
             <details key={f.q} className="faq__item">

@@ -286,7 +286,7 @@ function SavedCard({ item, onStatusChange, onRemove }) {
           rel="noreferrer"
           className="card-more-info-link"
         >
-          Apply on official site →
+          Apply on the official site
         </a>
       )}
 

@@ -28,12 +28,12 @@ function HeroVisual() {
     <div className="hiw-hero-visual">
       <div className="hiw-hero-node">
         <span className="hiw-hero-node__icon" aria-hidden="true"><User size={26} strokeWidth={2.2} /></span>
-        <span className="hiw-hero-node__label">Your Profile</span>
+        <span className="hiw-hero-node__label">Your profile</span>
       </div>
       <span className="hiw-hero-arrow" aria-hidden="true">→</span>
       <div className="hiw-hero-node">
         <span className="hiw-hero-node__icon" aria-hidden="true"><Cog size={26} strokeWidth={2.2} /></span>
-        <span className="hiw-hero-node__label">Matching Engine</span>
+        <span className="hiw-hero-node__label">Matching</span>
       </div>
       <span className="hiw-hero-arrow" aria-hidden="true">→</span>
       <div className="hiw-hero-match-ring" role="img" aria-label="Example: 87% match">
@@ -49,7 +49,7 @@ function HeroVisual() {
 const FACTORS = [
   {
     icon: Target,
-    title: "GPA / Academic Performance",
+    title: "GPA and academic performance",
     badge: "Gate + scored factor",
     badgeClass: "mixed",
     text:
@@ -57,7 +57,7 @@ const FACTORS = [
   },
   {
     icon: GraduationCap,
-    title: "Grade Level",
+    title: "Grade level",
     badge: "Eligibility gate",
     badgeClass: "gate",
     text:
@@ -65,7 +65,7 @@ const FACTORS = [
   },
   {
     icon: MapPin,
-    title: "State / Location",
+    title: "State or location",
     badge: "Eligibility gate",
     badgeClass: "gate",
     text:
@@ -73,7 +73,7 @@ const FACTORS = [
   },
   {
     icon: BookOpen,
-    title: "Intended Major",
+    title: "Intended major",
     badge: "Usually scored",
     badgeClass: "mixed",
     text:
@@ -89,7 +89,7 @@ const FACTORS = [
   },
   {
     icon: Handshake,
-    title: "Demographic Eligibility",
+    title: "Demographic eligibility",
     badge: "Eligibility gate",
     badgeClass: "gate",
     text:
@@ -97,7 +97,7 @@ const FACTORS = [
   },
   {
     icon: ClipboardList,
-    title: "Scholarship-Specific Numbers",
+    title: "Scholarship-specific numbers",
     badge: "Powers value & urgency",
     badgeClass: "neutral",
     text:
@@ -107,19 +107,19 @@ const FACTORS = [
 
 const FLOW_STEPS = [
   {
-    title: "Student Profile",
+    title: "Your profile",
     text: "GPA, grade level, state, major, interests, and demographics: exactly what you entered in Profile.",
   },
   {
-    title: "Scholarship Requirements",
+    title: "Scholarship requirements",
     text: "The minimums, restrictions, and tags each scholarship lists for itself.",
   },
   {
-    title: "Eligibility Check",
+    title: "Eligibility check",
     text: "A strict pass/fail: grade level, state, demographics, GPA minimum, and (if flagged) major all have to line up, or the scholarship is dropped completely. Never scored, never shown.",
   },
   {
-    title: "Match Analysis",
+    title: "Match analysis",
     text: "For everything that passes, we score Academic Fit, Major Alignment, and Interest Alignment, then blend in Expected Value and a small boost from what you've saved or passed on before.",
   },
   {
@@ -164,13 +164,13 @@ export default function HowItWorks() {
   return (
     <div className="screen hiw-screen">
       <button type="button" className="text-link-button hiw-back" onClick={() => navigate(-1)}>
-        ← Back
+        Back
       </button>
 
       {/* 1. HERO */}
       <section className="hiw-hero">
         <h1 className="page-title hiw-hero-title">
-          How Our Scholarship <span className="brand-accent">Predictions</span> Work
+          How matching works
         </h1>
         <p className="page-subtitle hiw-hero-subtitle">
           ScholarMatch reads your profile and a scholarship's own stated requirements, checks
@@ -194,9 +194,11 @@ export default function HowItWorks() {
         <div className="hiw-factor-grid">
           {FACTORS.map((f) => (
             <div key={f.title} className="hiw-factor-card">
-              <span className="hiw-factor-card__icon" aria-hidden="true"><f.icon size={22} strokeWidth={2.2} /></span>
-              <span className={`hiw-factor-badge hiw-factor-badge--${f.badgeClass}`}>{f.badge}</span>
-              <h3 className="hiw-factor-card__title">{f.title}</h3>
+              <h3 className="hiw-factor-card__title">
+                <f.icon size={18} strokeWidth={2.2} aria-hidden="true" className="hiw-factor-card__icon" />
+                {f.title}
+              </h3>
+              <p className={`hiw-factor-badge hiw-factor-badge--${f.badgeClass}`}>{f.badge}</p>
               <p className="hiw-factor-card__text">{f.text}</p>
             </div>
           ))}

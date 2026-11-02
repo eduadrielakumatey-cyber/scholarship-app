@@ -66,7 +66,7 @@ export default function Stats() {
     <div className="screen">
       <h1 className="page-title">Your stats</h1>
       <Link to="/how-it-works" className="text-link-button" style={{ marginBottom: 8, display: "inline-block" }}>
-        Curious how predictions work? →
+        How predictions work
       </Link>
 
       {loading && <p className="page-subtitle">Crunching your numbers...</p>}

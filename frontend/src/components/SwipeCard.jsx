@@ -154,7 +154,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
 
         <div className="card-tags">
           {tags.map((tag, i) => (
-            <span key={i} className={`card-tag card-tag--${"abcd"[i % 4]}`}>{tag}</span>
+            <span key={i} className="card-tag">{tag}</span>
           ))}
         </div>
 

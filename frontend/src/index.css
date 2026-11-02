@@ -2562,27 +2562,6 @@ html, body {
   box-shadow: var(--glow-gold);
 }
 
-.app-sidebar__helper {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 16px;
-  background:
-    radial-gradient(160px circle at 0% 0%, rgba(255, 77, 141, 0.22), transparent 70%),
-    rgba(var(--tint-rgb), 0.06);
-  border: 1px solid rgba(var(--tint-rgb), 0.1);
-  box-shadow: var(--edge-highlight);
-}
-
-.app-sidebar__helper-title {
-  margin: 0 0 2px;
-  font-weight: 700;
-  font-size: 0.88rem;
-}
-
-.app-sidebar__helper-link,
 .app-sidebar__logout {
   display: inline-flex;
   align-items: center;
@@ -2911,13 +2890,6 @@ html, body {
   box-shadow: var(--glow-gold);
 }
 
-.app-sidebar__helper {
-  background:
-    radial-gradient(160px circle at 0% 0%, rgba(255, 140, 180, 0.28), transparent 70%),
-    #ffffff;
-  border-color: #ece2d2;
-}
-
 @media (max-width: 860px) {
   .app-topbar {
     background: rgba(255, 251, 244, 0.86);
@@ -3126,19 +3098,6 @@ html, body {
   padding: 56px 0 40px;
 }
 
-.landing-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(8, 107, 95, 0.1);
-  color: var(--color-teal);
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 0 0 18px;
-}
-
 .landing-h1 {
   font-size: clamp(2.4rem, 5.4vw, 4rem);
   line-height: 1.04;
@@ -3338,13 +3297,6 @@ html, body {
   line-height: 1.5;
 }
 
-.demo-card__eyebrow {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
 .demo-card__cta {
   display: inline-flex;
   align-items: center;
@@ -3415,51 +3367,11 @@ html, body {
 
 /* --- Live stats strip --- */
 
-.landing-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  margin: 24px 0 8px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--landing-border);
-  border: 1px solid var(--landing-border);
-}
-
-.landing-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 22px 20px;
-  background: var(--landing-card);
-}
-
-.landing-stat__value {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.landing-stat__label {
-  font-size: 0.88rem;
-  color: var(--color-on-dark-soft);
-}
-
 /* --- Sections --- */
 
 .landing-section {
   padding: 72px 0 8px;
   scroll-margin-top: 64px;
-}
-
-.landing-eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-coral);
 }
 
 .landing-h2 {
@@ -3881,10 +3793,6 @@ html, body {
     padding-top: 32px;
   }
 
-  .landing-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .landing-nav__links {
     display: none;
   }
@@ -3932,4 +3840,509 @@ html, body {
   .steps__progress {
     animation: none;
   }
+}
+
+/* ============================================================
+   Plain pass: strip the "generated" look
+   ------------------------------------------------------------
+   Last layer on purpose, so it wins over the dark, vibrant and
+   light layers above without rewriting them. The rules:
+   - one accent color (burnt orange) used for emphasis only; teal
+     means "saved / good", red means "urgent / pass". Nothing else
+     gets color.
+   - no gradient text, gradient buttons, glows, glass blur, dot
+     grids or background blobs.
+   - each surface has a border OR a shadow, not both; modest radii.
+   - labels in sentence case; numbers in the body font with
+     tabular figures instead of a "techy" monospace.
+   - nothing animates forever except Scout being Scout.
+   ============================================================ */
+
+:root {
+  --accent: #b4441b;
+  --accent-soft: #f6e3d8;
+  --ink: #23202b;
+  --ink-soft: #625b6b;
+  --line: #e2d9ca;
+  --surface: #fffdf9;
+  --good: #0f6e63;
+  --bad: #b3261e;
+  --color-bg: #f5f0e7;
+  --color-surface: var(--surface);
+  --color-on-dark: var(--ink);
+  --color-on-dark-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --glow-gold: none;
+  --glow-teal: none;
+  --glow-coral: none;
+  --glow-violet: none;
+  --edge-highlight: none;
+  --shadow-card: 0 1px 2px rgba(35, 32, 43, 0.06);
+  --gradient-brand: var(--accent);
+  --gradient-primary: var(--ink);
+  --gradient-like: var(--good);
+  --gradient-card-top: transparent;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  background-attachment: initial;
+}
+
+/* Dot grid behind every page */
+#root::before {
+  display: none;
+}
+
+/* --- Text: solid colors only --- */
+
+.brand-accent,
+.landing-underline {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--accent);
+}
+
+.card-amount,
+.saved-card__amount,
+.hiw-hero-match-ring__value {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--ink);
+}
+
+.landing-underline::after {
+  display: none;
+}
+
+/* Uppercase, letter-spaced micro labels read as template chrome */
+.card-deadline,
+.hiw-ev-card__label,
+.hiw-factor-badge,
+.hiw-hero-match-ring__label,
+.save-donut__label,
+.saved-section-title,
+.saved-summary__label,
+.stat-tile__label,
+.step-panel__label,
+.stub-label,
+.urgency-badge,
+.why-match__title {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Monospace was only there to look technical */
+.card-deadline,
+.countdown__value,
+.deadline-list__amount,
+.hiw-tier-card__range,
+.saved-card__deadline,
+.saved-card__metrics,
+.steps__num,
+.stub-award,
+.stub-dph,
+.stub-value,
+.why-match__score {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Buttons --- */
+
+.primary-button {
+  background: var(--ink);
+  color: #fffaf2;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #3a3545;
+  transform: none;
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  color: #fffaf2;
+  border-color: var(--ink);
+  box-shadow: none;
+}
+
+.round-button--pass,
+.round-button--like {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.round-button--pass {
+  color: var(--bad);
+}
+
+.round-button--like {
+  color: var(--good);
+}
+
+.round-button--like-filled {
+  background: var(--good);
+  color: #fff;
+  border-color: var(--good);
+  box-shadow: none;
+}
+
+.text-link-button {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* --- Surfaces: border, no glow, modest corners --- */
+
+.swipe-card,
+.saved-card,
+.stat-tile,
+.saved-summary,
+.deadline-list__row,
+.hiw-factor-card,
+.hiw-tier-card,
+.hiw-callout,
+.hiw-disclaimer,
+.hiw-ev-card,
+.hiw-why-example,
+.empty-deck,
+.empty-state {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+/* Rainbow stripe across the top of every card */
+.swipe-card::before {
+  display: none;
+}
+
+/* Tinted washes that only existed to be colorful */
+.stat-tile--gold,
+.stat-tile--teal,
+.stat-tile--coral,
+.hiw-tier-card--high,
+.hiw-tier-card--medium,
+.hiw-tier-card--low {
+  background: var(--surface);
+}
+
+.ticket-stub {
+  background: #f1ebe0;
+  color: var(--ink);
+  border-top: 1px solid var(--line);
+}
+
+/* Tags: one neutral style. Color now only means something. */
+.card-tag,
+.card-tag--a,
+.card-tag--b,
+.card-tag--c,
+.card-tag--d {
+  background: #f1ebe0;
+  color: var(--ink-soft);
+  border: none;
+  box-shadow: none;
+}
+
+.urgency-badge {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
+}
+
+.urgency-badge--critical {
+  background: #f8dcd8;
+  color: var(--bad);
+  animation: none;
+}
+
+.field-group input:focus,
+.field-group select:focus {
+  box-shadow: 0 0 0 3px rgba(180, 68, 27, 0.18);
+  border-color: var(--accent);
+}
+
+/* --- App chrome --- */
+
+.app-sidebar,
+.app-topbar {
+  background: var(--color-bg);
+  border-color: var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.app-nav__icon,
+.app-nav__link.is-active .app-nav__icon {
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+}
+
+.app-nav__link.is-active {
+  background: #ebe3d5;
+  box-shadow: none;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.app-sidebar__tour {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  text-align: left;
+  border-radius: 8px;
+}
+
+.app-sidebar__tour:hover {
+  background: #ebe3d5;
+  color: var(--ink);
+}
+
+/* --- Scout: keep the character, drop the effects around it --- */
+
+.guide__glow,
+.guide__sparkle {
+  display: none;
+}
+
+.guide__bubble {
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+
+.tour-spotlight {
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(35, 32, 43, 0.6), 0 0 0 2px var(--accent);
+}
+
+.profile-guide {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--surface);
+}
+
+/* --- How it works page --- */
+
+.hiw-factor-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hiw-factor-card__icon {
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+  color: var(--accent);
+  flex: none;
+}
+
+.hiw-factor-badge {
+  align-self: auto;
+  margin: -2px 0 6px;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.hiw-hero-node__icon {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  color: var(--ink);
+}
+
+.hiw-hero-match-ring {
+  background: conic-gradient(var(--good) 0% 87%, #e6ddcd 87% 100%);
+  box-shadow: none;
+}
+
+.hiw-timeline__marker {
+  background: var(--ink);
+  color: #fffaf2;
+  box-shadow: none;
+}
+
+.hiw-timeline__step:not(:last-child)::before {
+  background: var(--line);
+}
+
+/* --- Homepage --- */
+
+.landing {
+  --landing-ink: var(--ink);
+  --landing-card: var(--surface);
+  --landing-border: var(--line);
+}
+
+.landing-nav {
+  background: var(--color-bg);
+  box-shadow: 0 0 0 100vmax var(--color-bg), 0 1px 0 100vmax var(--line);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.landing-btn--dark {
+  box-shadow: none;
+}
+
+.landing-btn--lg {
+  border-radius: 10px;
+}
+
+.landing-h1 {
+  letter-spacing: -0.02em;
+}
+
+.landing-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 22px 0 0;
+  max-width: 34em;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.landing-note svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--good);
+}
+
+.demo-card,
+.steps__stage {
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(35, 32, 43, 0.06);
+}
+
+.demo-card::before {
+  display: none;
+}
+
+.demo-card__amount {
+  color: var(--ink);
+}
+
+.demo-card--skeleton {
+  animation: none;
+  background: #efe8dc;
+}
+
+.demo-tag--accent {
+  background: rgba(15, 110, 99, 0.1);
+  color: var(--good);
+}
+
+.demo-action,
+.demo-action--save {
+  box-shadow: none;
+}
+
+.demo-action--save {
+  background: var(--good);
+}
+
+.steps__item,
+.due-row,
+.faq__item,
+.step-chip,
+.rank-row {
+  border-radius: 10px;
+}
+
+.steps__item.is-active {
+  box-shadow: none;
+}
+
+.steps__item.is-active .steps__num {
+  color: var(--accent);
+}
+
+/* Progress bar under the active step was a rainbow; now a quiet rule */
+.steps__progress {
+  height: 2px;
+  background: var(--accent);
+}
+
+.due-row:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #cfc3ae;
+}
+
+.landing-final {
+  background: var(--surface);
+  border-radius: 14px;
+}
+
+/* Ticket stub + action bar: same neutral surface, plain divider */
+.card-actions {
+  background: #f1ebe0;
+  border-top: 1px solid var(--line);
+}
+
+.ticket-tear {
+  border-top: 1px solid var(--line);
+}
+
+.stub-value--chance,
+.stub-value--money,
+.stub-value--ev,
+.stub-award {
+  color: var(--ink);
+}
+
+.swipe-hint__side {
+  background: none;
+  border: none;
+  padding: 5px 0;
+  color: var(--ink-soft);
+}
+
+/* Sentence case for tags: capitalize only the first letter ("~10hr to apply",
+   not "~10hr To Apply"). */
+.card-tag,
+.demo-tag,
+.step-chip {
+  text-transform: none;
+}
+
+.card-tag,
+.demo-tag {
+  display: inline-block;
+}
+
+.card-tag::first-letter,
+.demo-tag::first-letter {
+  text-transform: uppercase;
+}
+
+.demo-action--pass {
+  color: var(--bad);
 }
