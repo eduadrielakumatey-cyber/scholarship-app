@@ -17,7 +17,7 @@ export default function LegalFooter() {
         <Link to="/licenses">Licenses</Link>
       </nav>
       <p className="legal-footer__business">
-        {SITE.appName} is operated by {SITE.operatorName}, {SITE.mailingAddress}.{" "}
+        {SITE.appName} is operated by {SITE.operatorName}{SITE.mailingAddress && `, ${SITE.mailingAddress}`}.{" "}
         Contact: <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
       </p>
       <p className="legal-footer__business">

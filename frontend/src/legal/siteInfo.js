@@ -7,12 +7,14 @@
 
 export const SITE = {
   appName: "ScholarMatch",
-  operatorName: "[Your legal name or company name]",
-  operatorType: "[sole proprietor / LLC]",
-  mailingAddress: "[Street address, City, State ZIP, USA]",
-  contactEmail: "[privacy@yourdomain.com]",
+  operatorName: "Adriel Akumatey",
+  operatorType: "an individual",
+  // Left empty on purpose: a home address shouldn't be public. Add a PO box
+  // or virtual mailbox here later; the pages hide the address while empty.
+  mailingAddress: "",
+  contactEmail: "eduadrielakumatey@gmail.com",
   governingState: "[State]",
-  websiteUrl: "[https://yourdomain.com]",
+  websiteUrl: "https://scholarship-app-ten.vercel.app",
 };
 
 // Shown as "Last updated" on each policy. Keep in sync with TERMS_VERSION

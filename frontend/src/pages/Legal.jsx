@@ -34,7 +34,7 @@ export function Privacy() {
   return (
     <LegalLayout title="Privacy Policy">
       <p>
-        {SITE.appName} ("we", "us") is operated by {SITE.operatorName}, {SITE.mailingAddress}.
+        {SITE.appName} ("we", "us") is operated by {SITE.operatorName}{SITE.mailingAddress && `, ${SITE.mailingAddress}`}.
         This policy explains what we collect, why, and the controls you have. Questions:{" "}
         {contactLink}.
       </p>
@@ -229,7 +229,7 @@ export function Terms() {
 
       <h2>Contact</h2>
       <p>
-        {SITE.operatorName}, {SITE.mailingAddress}. {contactLink}
+        {SITE.operatorName}{SITE.mailingAddress && `, ${SITE.mailingAddress}`}. {contactLink}
       </p>
     </LegalLayout>
   );
