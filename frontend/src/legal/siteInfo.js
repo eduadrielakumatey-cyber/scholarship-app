@@ -13,7 +13,7 @@ export const SITE = {
   // or virtual mailbox here later; the pages hide the address while empty.
   mailingAddress: "",
   contactEmail: "eduadrielakumatey@gmail.com",
-  governingState: "[State]",
+  governingState: "Maryland",
   websiteUrl: "https://scholarship-app-ten.vercel.app",
 };
 
