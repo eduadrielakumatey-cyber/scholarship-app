@@ -18,11 +18,36 @@ import GuideTour, { isTourDone } from "../components/guide/GuideTour.jsx";
 const SAVE_LINES = ["Saved! Nice pick.", "Ooh, good one. It's in Saved.", "Added to your list!"];
 const PASS_LINES = ["No worries, next!", "Skipped. I'll keep looking.", "Not your vibe? On to the next."];
 
+// "We hid 212 awards you can't win" with a tap-to-expand breakdown, so the
+// filter reads as work done for the student instead of a thin list.
+function FilteredNote({ filtered }) {
+  const n = filtered.hidden_count;
+  return (
+    <details className="filtered-note">
+      <summary>
+        We hid <strong>{n}</strong> open {n === 1 ? "scholarship" : "scholarships"} you
+        can&apos;t win. See why
+      </summary>
+      <ul>
+        {filtered.reasons.map((r) => (
+          <li key={r.label}>
+            <span>{r.label}</span>
+            <span className="filtered-note__count">{r.count}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="filtered-note__foot">
+        Some miss more than one requirement. Updating your profile can bring them back.
+      </p>
+    </details>
+  );
+}
+
 export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { deck, loading, error, swipe, reload } = useScholarships();
+  const { deck, loading, error, filtered, swipe, reload } = useScholarships();
   const [touring, setTouring] = useState(false);
   const [reaction, setReaction] = useState(null);
   const swipeCount = useRef(0);
@@ -89,7 +114,14 @@ export default function Discover() {
         </div>
       )}
 
-      {loading && <p className="page-subtitle">Finding your matches...</p>}
+      {!loading && !error && filtered?.hidden_count > 0 && <FilteredNote filtered={filtered} />}
+
+      {loading && (
+        <p className="page-subtitle">
+          Finding your matches... If this is the first visit in a while, the server can take up to
+          a minute to wake up.
+        </p>
+      )}
       {error && <p className="error-text">{error}</p>}
       {!loading && !error && <SwipeDeck deck={deck} onSwipe={handleSwipe} onRefresh={reload} />}
       {touring && <GuideTour onClose={() => setTouring(false)} />}

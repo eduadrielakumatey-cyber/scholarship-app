@@ -201,7 +201,47 @@ def _excluded_scholarship_ids(user) -> set[int]:
     return permanent | (passed_ids - reentry)
 
 
+def _reason_category(reason: str) -> str:
+    """Collapse is_eligible()'s specific reasons into a few readable buckets."""
+    if "GPA" in reason:
+        return "GPA below the minimum"
+    if "your state" in reason:
+        return "Only for students in other states"
+    if reason.startswith("Not open to"):
+        return "Not open to your grade level"
+    if "demographic" in reason:
+        return "For a specific background not on your profile"
+    if "majors" in reason:
+        return "Restricted to other majors"
+    return "Other requirements"
+
+
 def get_swipe_deck(user, limit: int = 25) -> list[dict]:
+    return get_swipe_deck_with_summary(user, limit)[0]
+
+
+def get_swipe_deck_with_summary(user, limit: int = 25) -> tuple[list[dict], dict]:
+    """
+    Same as get_swipe_deck, plus a summary of the open scholarships the
+    filter hid and why, so a short deck reads as "we filtered for you"
+    rather than "there's nothing here".
+    """
+    cards, hidden = _deck(user, limit)
+    counts: dict[str, int] = {}
+    for reasons in hidden:
+        for category in {_reason_category(r) for r in reasons}:
+            counts[category] = counts.get(category, 0) + 1
+    summary = {
+        "hidden_count": len(hidden),
+        "reasons": [
+            {"label": label, "count": n}
+            for label, n in sorted(counts.items(), key=lambda kv: -kv[1])
+        ],
+    }
+    return cards, summary
+
+
+def _deck(user, limit: int) -> tuple[list[dict], list[list[str]]]:
     """
     Returns scored, ranked scholarship dicts for the next batch of swipe
     cards. Excludes anything the user has saved/liked, and anything
@@ -221,16 +261,18 @@ def get_swipe_deck(user, limit: int = 25) -> list[dict]:
     affinities = preferences.get_tag_affinities(user)
     scored_bases = []
     ev_pool = []
+    hidden = []
     for scholarship in candidates:
         base = calculate_scores(user, scholarship, today=today)
         if not base["eligible"]:
+            hidden.append(base.get("ineligible_reasons") or [])
             continue
         scored_bases.append((scholarship, base))
         ev_pool.append(base["application_value_raw"]["expected_value_per_hour"])
 
     results = [_finalize(s, b, ev_pool, affinities) for s, b in scored_bases]
     results.sort(key=lambda card: card["final_score"], reverse=True)
-    return results[:limit]
+    return results[:limit], hidden
 
 
 def score_single(user, scholarship) -> dict:

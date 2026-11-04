@@ -13,7 +13,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
 from app.models import User, Scholarship, Interaction
-from app.services.matching import get_swipe_deck, score_single
+from app.services.matching import get_swipe_deck_with_summary, score_single
 from app.utils.validators import normalize_interests
 
 scholarships_bp = Blueprint("scholarships", __name__, url_prefix="/api/scholarships")
@@ -31,8 +31,8 @@ def deck():
             400,
         )
     limit = request.args.get("limit", default=25, type=int)
-    cards = get_swipe_deck(user, limit=limit)
-    return jsonify({"count": len(cards), "results": cards})
+    cards, filtered = get_swipe_deck_with_summary(user, limit=limit)
+    return jsonify({"count": len(cards), "results": cards, "filtered": filtered})
 
 
 @scholarships_bp.get("/<int:scholarship_id>")

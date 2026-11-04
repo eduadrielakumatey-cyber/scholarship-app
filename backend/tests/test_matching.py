@@ -120,3 +120,16 @@ class TestPreferenceBoost:
         # "healthcare" has no entry in affinities -- must be treated as 0,
         # not KeyError, not assumed negative or positive.
         assert compute_boost(scholarship, affinities={"stem": 1.0}) == 0.0
+
+
+class TestReasonCategory:
+    """The 'we hid N scholarships' breakdown buckets is_eligible()'s reasons."""
+
+    def test_each_reason_maps_to_its_bucket(self):
+        from app.services.matching import _reason_category
+
+        assert _reason_category("Your GPA (3.1) is below the 3.5 minimum") == "GPA below the minimum"
+        assert _reason_category("Not open to your state (MD)") == "Only for students in other states"
+        assert _reason_category("Not open to high school seniors") == "Not open to your grade level"
+        assert _reason_category("Requires a demographic group not on your profile").startswith("For a specific")
+        assert _reason_category("Restricted to majors: nursing") == "Restricted to other majors"

@@ -14,14 +14,18 @@ export function useScholarships() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [exhausted, setExhausted] = useState(false);
+  // { hidden_count, reasons: [{label, count}] } -- open awards the
+  // eligibility filter removed, so a short deck doesn't feel empty.
+  const [filtered, setFiltered] = useState(null);
   const fetchingMore = useRef(false);
 
   const loadDeck = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { results } = await api.getDeck();
+      const { results, filtered: summary } = await api.getDeck();
       setDeck(results);
+      setFiltered(summary ?? null);
       setExhausted(results.length === 0);
     } catch (err) {
       setError(err.message);
@@ -77,5 +81,5 @@ export function useScholarships() {
       });
   }, []);
 
-  return { deck, loading, error, reload: loadDeck, swipe };
+  return { deck, loading, error, filtered, reload: loadDeck, swipe };
 }

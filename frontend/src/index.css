@@ -4401,3 +4401,43 @@ body {
     font-size: 1.25rem;
   }
 }
+
+/* "We hid N scholarships you can't win" note on Discover. Sits on the
+   page background, so it uses the on-dark tokens like .swipe-hint. */
+.filtered-note {
+  margin: 0 auto 14px;
+  max-width: 440px;
+  font-size: 0.9rem;
+  color: var(--color-on-dark-soft);
+}
+.filtered-note summary {
+  cursor: pointer;
+  text-align: center;
+  list-style: none;
+}
+.filtered-note summary::-webkit-details-marker { display: none; }
+.filtered-note summary strong { color: var(--color-on-dark); }
+.filtered-note summary::after { content: " ▾"; }
+.filtered-note[open] summary::after { content: " ▴"; }
+.filtered-note ul {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-on-dark-soft) 30%, transparent);
+  border-radius: 12px;
+}
+.filtered-note li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.filtered-note__count {
+  color: var(--color-on-dark);
+  font-variant-numeric: tabular-nums;
+}
+.filtered-note__foot {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  text-align: center;
+}
