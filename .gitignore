@@ -18,3 +18,6 @@ dist/
 # Daily discovery run data (candidates in, reports out) -- not code
 backend/discovery_inbox/
 backend/discovery_reports/
+
+# Production database connection string (never commit)
+.env.neon
