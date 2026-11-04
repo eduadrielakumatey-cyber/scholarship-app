@@ -4441,3 +4441,34 @@ body {
   font-size: 0.8rem;
   text-align: center;
 }
+
+/* "Matches you" row on each swipe card: the profile facts that let this
+   award through the filter. Teal = the app's "yes / like" color. */
+.card-matched {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.card-matched__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+}
+.card-matched__chip {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #06695c;
+  background: color-mix(in srgb, var(--color-teal) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-teal) 45%, transparent);
+}
+.card-tag.card-tag--easy {
+  color: #06695c;
+  border-color: color-mix(in srgb, var(--color-teal) 55%, transparent);
+  background: color-mix(in srgb, var(--color-teal) 14%, transparent);
+}

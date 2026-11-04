@@ -132,6 +132,7 @@ def _finalize(scholarship, base: dict, ev_pool: list[float], affinities: dict) -
     final_score = combine_final_score(base["match_quality"]["score"], application_value_score, preference_boost)
 
     payload["match_quality"] = base["match_quality"]
+    payload["matched_on"] = base.get("matched_on", [])
     payload["competitiveness"] = base["competitiveness"]
     payload["application_value"] = {**base["application_value_raw"], "score": application_value_score}
     payload["preference_boost"] = preference_boost

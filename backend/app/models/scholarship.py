@@ -75,6 +75,11 @@ class Scholarship(db.Model):
     # a conservative 2 hours when the scraper can't infer it from the listing.
     estimated_hours_to_apply = db.Column(db.Float, nullable=False, default=2.0)
 
+    # Whether the application asks for an essay or personal statement.
+    # NULL = not checked / the official page didn't say, and the card shows
+    # no essay tag rather than guessing. Filled by scraper/essay_backfill.py.
+    essay_required = db.Column(db.Boolean, nullable=True)
+
     # Estimated number of applicants. This drives the "chance of winning"
     # heuristic. If the source lists a real applicant count, the scraper
     # stores that. Otherwise we fall back to a rough bucket by award size
@@ -174,6 +179,7 @@ class Scholarship(db.Model):
             "interests": self.interests or [],
             "majors_are_hard_requirement": self.majors_are_hard_requirement,
             "estimated_hours_to_apply": self.estimated_hours_to_apply,
+            "essay_required": self.essay_required,
             "num_awards": self.num_awards,
             "source_name": self.source_name,
             "source_url": self.source_url,

@@ -326,7 +326,55 @@ def calculate_scores(user, scholarship, today: date | None = None) -> dict:
         "eligible": True,
         "ineligible_reasons": [],
         "match_quality": match_quality(user, scholarship),
+        "matched_on": matched_on(user, scholarship),
         "competitiveness": competitiveness,
         "application_value_raw": application_value_raw(scholarship, competitiveness["ratio"]),
         "urgency": urgency,
     }
+
+
+# ---------------------------------------------------------------------------
+# "Matched because" chips
+# ---------------------------------------------------------------------------
+
+def matched_on(user, scholarship) -> list[str]:
+    """
+    Short, concrete reasons this (already eligible) scholarship was shown,
+    e.g. ["State: MD", "Interest: biology"], so the student can see the
+    filter working instead of taking the ranking on faith. Only lists
+    restrictions the scholarship actually has and the profile actually
+    meets; an award open to everyone says so.
+    """
+    chips = []
+    states = _safe_lower_set(scholarship.states)
+    if states and user.state and user.state.lower() in states:
+        chips.append(f"State: {user.state.upper()}")
+
+    grades = _safe_lower_set(scholarship.grade_levels)
+    if grades and user.grade_level and user.grade_level.lower() in grades:
+        chips.append(f"Grade: {_grade_level_label(user.grade_level)}")
+
+    if scholarship.min_gpa is not None and user.gpa is not None and user.gpa >= scholarship.min_gpa:
+        chips.append(f"GPA: {user.gpa:g} (min {scholarship.min_gpa:g})")
+
+    majors = _safe_lower_set(scholarship.majors)
+    if majors and user.major and user.major.lower() in majors:
+        chips.append(f"Major: {user.major}")
+
+    shared_demo = _safe_lower_set(scholarship.demographics) & _safe_lower_set(user.demographics)
+    for group in sorted(shared_demo)[:2]:
+        chips.append(f"Background: {group}")
+
+    sch_interests = _safe_lower_set(scholarship.interests)
+    user_interests = _safe_lower_set(user.interests)
+    exact = sch_interests & user_interests
+    related = (sch_interests & interest_taxonomy.expand(user_interests)) - exact
+    for tag in sorted(exact)[:2]:
+        chips.append(f"Interest: {tag}")
+    if not exact:
+        for tag in sorted(related)[:1]:
+            chips.append(f"Interest: {tag} (related)")
+
+    if not chips:
+        chips.append("Open to all students")
+    return chips

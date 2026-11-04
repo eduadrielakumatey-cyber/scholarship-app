@@ -403,3 +403,25 @@ class TestCalculateScoresBundle:
         assert scores["match_quality"] is not None
         assert scores["competitiveness"] is not None
         assert scores["application_value_raw"] is not None
+
+
+class TestMatchedOn:
+    """The 'Matches you' chips on each card."""
+
+    def test_lists_each_requirement_the_profile_meets(self):
+        from app.services.scoring import matched_on
+
+        chips = matched_on(make_user(), make_scholarship(states=["MD"]))
+        assert "State: MD" in chips
+        assert "Grade: College Sophomore" in chips
+        assert "GPA: 3.6 (min 3)" in chips
+        assert "Major: computer science" in chips
+        assert "Interest: stem" in chips
+
+    def test_award_with_no_restrictions_says_open_to_all(self):
+        from app.services.scoring import matched_on
+
+        open_award = make_scholarship(
+            min_gpa=None, grade_levels=[], majors=[], interests=[], demographics=[], states=[]
+        )
+        assert matched_on(make_user(), open_award) == ["Open to all students"]

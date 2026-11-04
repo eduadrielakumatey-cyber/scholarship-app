@@ -111,6 +111,9 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
   if (scholarship.majors && scholarship.majors.length > 0) {
     tags.push(scholarship.majors[0]);
   }
+  // Only shown when the provider's own page said so (null = unknown).
+  if (scholarship.essay_required === false) tags.push("No essay");
+  if (scholarship.essay_required === true) tags.push("Essay required");
   if (scholarship.estimated_hours_to_apply) {
     tags.push(`~${scholarship.estimated_hours_to_apply}hr to apply`);
   }
@@ -152,9 +155,23 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
         <h2 className="card-title">{scholarship.title}</h2>
         <p className="card-org">{scholarship.organization}</p>
 
+        {scholarship.matched_on?.length > 0 && (
+          <div className="card-matched" aria-label="Why this matched you">
+            <span className="card-matched__label">Matches you</span>
+            {scholarship.matched_on.map((chip) => (
+              <span key={chip} className="card-matched__chip">✓ {chip}</span>
+            ))}
+          </div>
+        )}
+
         <div className="card-tags">
           {tags.map((tag, i) => (
-            <span key={i} className="card-tag">{tag}</span>
+            <span
+              key={i}
+              className={`card-tag${tag === "No essay" ? " card-tag--easy" : ""}`}
+            >
+              {tag}
+            </span>
           ))}
         </div>
 
