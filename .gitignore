@@ -21,3 +21,4 @@ backend/discovery_reports/
 
 # Production database connection string (never commit)
 .env.neon
+.env.render
