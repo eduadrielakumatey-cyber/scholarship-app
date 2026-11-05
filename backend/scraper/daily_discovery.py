@@ -175,6 +175,26 @@ def estimate_applicant_pool(amount: float) -> int:
 # 1. Field checks (pure -- no network, no DB)
 # ---------------------------------------------------------------------------
 
+_PLACE = (
+    r"(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|"
+    r"idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|"
+    r"minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|"
+    r"new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|"
+    r"south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|"
+    r"wisconsin|wyoming|dc|d\.c\.|district of columbia)"
+)
+_RESIDENCY = re.compile(
+    rf"\b{_PLACE} residents?\b|\bresidents? of (the )?{_PLACE}\b|\b{_PLACE} high school (seniors|students|graduates)\b",
+    re.IGNORECASE,
+)
+
+
+def residency_mentioned(description: str) -> str | None:
+    """The phrase if a description limits the award to one state's residents."""
+    m = _RESIDENCY.search(description or "")
+    return m.group(0) if m else None
+
+
 def validate_fields(c: dict, today: date) -> list[str]:
     """Returns a list of problems; empty means the candidate's fields are OK."""
     problems: list[str] = []
@@ -229,6 +249,12 @@ def validate_fields(c: dict, today: date) -> list[str]:
     states = c.get("states") or []
     if not isinstance(states, list) or any(str(s).upper() not in US_STATE_CODES for s in states):
         problems.append(f"invalid state code in {states}")
+    elif not states:
+        residency = residency_mentioned(desc)
+        if residency:
+            # A "national" listing whose own description says it's for one
+            # place's residents would be shown to students everywhere.
+            problems.append(f"states is empty but the description says '{residency}'; set states")
 
     demos = c.get("demographics") or []
     if not isinstance(demos, list) or any(d not in ALLOWED_DEMOGRAPHICS for d in demos):

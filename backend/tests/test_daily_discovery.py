@@ -276,3 +276,13 @@ def test_failed_render_keeps_the_empty_page(monkeypatch):
 def test_two_digit_year_deadline_matches():
     page = normalize_text("Applications are due 3/1/27 at midnight.")
     assert any(v in page for v in deadline_variants(date(2027, 3, 1)))
+
+
+def test_residency_in_description_requires_states():
+    from scraper.daily_discovery import residency_mentioned
+
+    assert residency_mentioned("Grant for DC residents attending public universities nationwide")
+    assert residency_mentioned("Open to residents of Indiana pursuing nursing")
+    assert residency_mentioned("For Texas high school seniors with a 3.0 GPA")
+    assert residency_mentioned("For US citizens or permanent residents of Hispanic heritage") is None
+    assert residency_mentioned("Finalists fly to Washington DC for the finals") is None
