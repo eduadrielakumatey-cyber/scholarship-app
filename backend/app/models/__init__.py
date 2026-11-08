@@ -12,5 +12,6 @@ from app/__init__.py, guarantees that happens.
 from app.models.user import User
 from app.models.scholarship import Scholarship
 from app.models.interaction import Interaction
+from app.models.device_link import DeviceLink
 
-__all__ = ["User", "Scholarship", "Interaction"]
+__all__ = ["User", "Scholarship", "Interaction", "DeviceLink"]

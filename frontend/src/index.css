@@ -4479,3 +4479,61 @@ body {
   margin: 0 auto;
   padding: 24px 16px 48px;
 }
+
+/* "Use on another device" (Profile) and the /link page. */
+.device-link {
+  margin: 18px 0 20px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--tint-rgb), 0.18);
+  background: rgba(var(--tint-rgb), 0.04);
+}
+.device-link__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+.device-link__code-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.device-link__code-box > div {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.device-link__qr {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  background: #fff;
+  padding: 6px;
+}
+.device-link__code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0 0 8px;
+}
+.device-link__input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.4rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.device-link__alt {
+  margin-top: 16px;
+  text-align: center;
+}
+.landing-link-device {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+}
+.landing-link-device a {
+  font-weight: 600;
+  text-decoration: underline;
+}

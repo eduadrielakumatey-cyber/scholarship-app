@@ -90,6 +90,12 @@ export const login = (email, password) =>
 
 export const getMe = () => request("/api/auth/me");
 
+// Moving a profile to another device: a one-time code made on the old one,
+// typed (or scanned) on the new one.
+export const makeLinkCode = () => request("/api/auth/link-code", { method: "POST" });
+export const redeemLinkCode = (code) =>
+  request("/api/auth/link-code/redeem", { method: "POST", body: { code }, auth: false });
+
 // --- Profile ---
 export const getProfile = () => request("/api/profile");
 export const updateProfile = (fields) => request("/api/profile", { method: "PUT", body: fields });

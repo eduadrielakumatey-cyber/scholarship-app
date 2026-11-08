@@ -11,6 +11,8 @@ Endpoints:
   POST /api/auth/signup  -> create account, return token
   POST /api/auth/login   -> verify credentials, return token
   GET  /api/auth/me      -> return the current user's profile (requires token)
+  POST /api/auth/link-code        -> one-time code to open this profile on another device
+  POST /api/auth/link-code/redeem -> trade that code for a token on the new device
 """
 
 from datetime import datetime, timedelta
@@ -19,7 +21,8 @@ from flask import Blueprint, current_app, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 from app.extensions import db
-from app.models import User
+from app.models import DeviceLink, User
+from app.services import device_link
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -99,6 +102,68 @@ def login():
 
     token = create_access_token(identity=str(user.id))
     return jsonify({"token": token, "user": user.to_dict()}), 200
+
+
+def _token_for(user):
+    if user.is_device_account:
+        return create_access_token(identity=str(user.id), expires_delta=DEVICE_TOKEN_LIFETIME)
+    return create_access_token(identity=str(user.id))
+
+
+@auth_bp.post("/link-code")
+@jwt_required()
+def make_link_code():
+    """A one-time code that opens this profile on another device."""
+    user = User.query.get_or_404(get_jwt_identity())
+    now = datetime.utcnow()
+
+    # Only the newest code works: making one cancels any earlier ones, and
+    # this is also when old rows get cleaned up.
+    DeviceLink.query.filter(
+        (DeviceLink.user_id == user.id) | (DeviceLink.expires_at < now)
+    ).delete(synchronize_session=False)
+
+    code = device_link.new_code()
+    link = DeviceLink(
+        user_id=user.id,
+        code_hash=device_link.hash_code(code),
+        expires_at=now + device_link.CODE_LIFETIME,
+    )
+    db.session.add(link)
+    db.session.commit()
+    return jsonify({
+        "code": device_link.display(code),
+        "expires_in_seconds": int(device_link.CODE_LIFETIME.total_seconds()),
+    }), 201
+
+
+@auth_bp.post("/link-code/redeem")
+def redeem_link_code():
+    data = request.get_json(silent=True) or {}
+    code = device_link.normalize(data.get("code"))
+    if len(code) != device_link.CODE_LENGTH:
+        return jsonify({"error": "Codes are 8 letters and numbers, like K7QP-4M2X."}), 400
+
+    link = DeviceLink.query.filter_by(code_hash=device_link.hash_code(code)).first()
+    if not device_link.is_usable(link):
+        return jsonify({
+            "error": "That code didn't work. It may have expired or already been used. "
+                     "Make a new one on your other device."
+        }), 400
+
+    user = db.session.get(User, link.user_id)
+    if user is None:
+        return jsonify({"error": "That profile no longer exists."}), 400
+
+    # Claim it in one UPDATE so two devices racing with the same code can't
+    # both get in.
+    claimed = DeviceLink.query.filter_by(id=link.id, used_at=None).update(
+        {"used_at": datetime.utcnow()}, synchronize_session=False
+    )
+    db.session.commit()
+    if claimed != 1:
+        return jsonify({"error": "That code was just used. Make a new one on your other device."}), 400
+    return jsonify({"token": _token_for(user), "user": user.to_dict()}), 200
 
 
 @auth_bp.get("/me")

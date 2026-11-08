@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import * as api from "../api/client.js";
+import DeviceLinkPanel from "./DeviceLinkPanel.jsx";
 
 export default function AccountSettings() {
   const { user, logout } = useAuth();
@@ -66,12 +67,15 @@ export default function AccountSettings() {
       </h2>
       {isDevice ? (
         <p className="field-help">
-          Your profile is saved on this device, with no email or password. Clearing this
-          browser's site data or switching devices starts you fresh.
+          Your profile is saved on this device, with no email or password. To use it on
+          your phone or another computer, get a code below. Clearing this browser's data
+          without doing that first starts you fresh.
         </p>
       ) : (
         user && <p className="field-help">Signed in as {user.email}</p>
       )}
+
+      <DeviceLinkPanel />
 
       <div className="account-settings__actions">
         {!isDevice && (

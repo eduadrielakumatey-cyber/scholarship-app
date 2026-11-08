@@ -48,6 +48,11 @@ export function Privacy() {
           never store or see the actual password.)
         </li>
         <li>
+          <strong>Device codes:</strong> if you tap "Get a code" to use your profile on another
+          device, we keep a scrambled (hashed) copy of that code until it's used or expires 15
+          minutes later.
+        </li>
+        <li>
           <strong>Matching profile:</strong> GPA, grade level, state, intended major and
           interests. These are required because they are exactly what the matcher uses.
         </li>
@@ -198,8 +203,8 @@ export function Terms() {
 
       <h2>Your account</h2>
       <p>
-        Your profile lives on the device you started it on, so anyone using that browser can
-        see it. Give accurate profile information. You can delete your profile at any time from
+        Your profile lives on the device you started it on, and on any device you open it on
+        with a one-time code, so anyone using those browsers can see it. Keep codes to yourself. Give accurate profile information. You can delete your profile at any time from
         the Profile page. We may suspend profiles that break these terms.
       </p>
 

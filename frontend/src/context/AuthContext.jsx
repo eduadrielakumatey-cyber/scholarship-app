@@ -55,6 +55,13 @@ export function AuthProvider({ children }) {
     return newUser;
   }
 
+  async function redeemLinkCode(code) {
+    const { token, user: linkedUser } = await api.redeemLinkCode(code);
+    api.setToken(token);
+    setUser(linkedUser);
+    return linkedUser;
+  }
+
   function logout() {
     api.clearToken();
     setUser(null);
@@ -68,7 +75,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, startOnDevice, logout, updateProfile, refreshUser }}
+      value={{ user, loading, login, signup, startOnDevice, redeemLinkCode, logout, updateProfile, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

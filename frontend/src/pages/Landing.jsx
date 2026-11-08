@@ -426,6 +426,10 @@ const FAQ = [
     a: "No. Real scholarships don't charge application fees. New listings that ask for one are rejected before they reach your deck.",
   },
   {
+    q: "Can I use it on my phone and my laptop?",
+    a: "Yes. On the device you started on, open Profile and tap Get a code. Then scan the QR code or type the code at /link on the other device. Your profile and saved scholarships come with you.",
+  },
+  {
     q: "What happens to my information?",
     a: "Your profile is only used to rank your matches. You can download your data or delete your account at any time from Settings.",
   },
@@ -467,6 +471,9 @@ export default function Landing() {
             </Link>
             <a href="#how" className="landing-btn landing-btn--ghost landing-btn--lg">See how it works</a>
           </div>
+          <p className="landing-link-device">
+            Already using ScholarMatch on another device? <Link to="/link">Enter your code</Link>
+          </p>
           {preview && (
             <p className="landing-note">
               <ShieldCheck size={16} aria-hidden="true" />

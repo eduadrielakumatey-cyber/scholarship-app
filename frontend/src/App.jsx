@@ -4,7 +4,7 @@
 // can call useAuth(), and gates the main app behind <RequireAuth> so a
 // visitor with no profile on this device is sent to the homepage instead
 // of hitting a broken page. There's no sign-up: /start makes a profile
-// tied to this device. /login stays only for older email accounts.
+// tied to this device; /link opens it on another device with a one-time code. /login stays only for older email accounts.
 
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
@@ -16,6 +16,7 @@ import Saved from "./pages/Saved.jsx";
 import Detail from "./pages/Detail.jsx";
 import Stats from "./pages/Stats.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
+import LinkDevice from "./pages/LinkDevice.jsx";
 import { Privacy, Terms, Cookies, Licenses } from "./pages/Legal.jsx";
 import StorageNotice from "./components/StorageNotice.jsx";
 import AppLayout from "./components/AppLayout.jsx";
@@ -64,6 +65,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/start" element={<Start />} />
       <Route path="/login" element={<LoginRoute />} />
+      <Route path="/link" element={<LinkDevice />} />
       {/* Policies are public: people must be able to read them before signing up. */}
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
