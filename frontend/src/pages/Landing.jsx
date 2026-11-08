@@ -143,7 +143,7 @@ function DemoDeck({ cards }) {
               Tell us your grade, state and interests, and every card is sorted by how well you fit
               and how much it's worth your time.
             </p>
-            <Link to="/login?mode=signup" className="primary-button demo-card__cta">
+            <Link to="/start" className="primary-button demo-card__cta">
               Build my deck <ArrowRight size={18} />
             </Link>
             <button
@@ -415,7 +415,7 @@ function HowItWorksSteps({ preview }) {
 const FAQ = [
   {
     q: "Is ScholarMatch free?",
-    a: "Yes. Creating an account, building your deck and tracking deadlines are all free.",
+    a: "Yes, and there's no sign-up. Building your deck and tracking deadlines are free, and your profile stays on your device.",
   },
   {
     q: "Where do the scholarships come from?",
@@ -447,8 +447,7 @@ export default function Landing() {
           <a href="#faq">FAQ</a>
         </nav>
         <div className="landing-nav__auth">
-          <Link to="/login" className="landing-btn landing-btn--ghost">Log in</Link>
-          <Link to="/login?mode=signup" className="landing-btn landing-btn--dark">Sign up</Link>
+          <Link to="/start" className="landing-btn landing-btn--dark">Start matching</Link>
         </div>
       </header>
 
@@ -463,8 +462,8 @@ export default function Landing() {
             one place.
           </p>
           <div className="landing-ctas">
-            <Link to="/login?mode=signup" className="landing-btn landing-btn--dark landing-btn--lg">
-              Get started free <ArrowRight size={18} />
+            <Link to="/start" className="landing-btn landing-btn--dark landing-btn--lg">
+              Start matching, no sign-up <ArrowRight size={18} />
             </Link>
             <a href="#how" className="landing-btn landing-btn--ghost landing-btn--lg">See how it works</a>
           </div>
@@ -484,7 +483,7 @@ export default function Landing() {
             <div className="demo-deck">
               <Guide
                 mood={failed ? "sad" : "thinking"}
-                message={failed ? "Couldn't load the demo right now. Sign up to see your matches!" : "Shuffling the deck..."}
+                message={failed ? "Couldn't load the demo right now. Tap Start to see your matches!" : "Shuffling the deck..."}
                 size={84}
                 className="demo-deck__guide"
               />
@@ -518,7 +517,7 @@ export default function Landing() {
               );
             })}
           </ul>
-          <Link to="/login?mode=signup" className="landing-btn landing-btn--ghost">
+          <Link to="/start" className="landing-btn landing-btn--ghost">
             See which ones you qualify for <ArrowRight size={16} />
           </Link>
         </section>
@@ -541,8 +540,8 @@ export default function Landing() {
       <section className="landing-final">
         <Guide mood="happy" message="I'll be right here to walk you through it." size={96} bubble="below" />
         <h2 className="landing-h2">Your deck is two minutes away</h2>
-        <Link to="/login?mode=signup" className="landing-btn landing-btn--dark landing-btn--lg">
-          Get started free <ArrowRight size={18} />
+        <Link to="/start" className="landing-btn landing-btn--dark landing-btn--lg">
+          Start matching, no sign-up <ArrowRight size={18} />
         </Link>
       </section>
 

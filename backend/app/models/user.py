@@ -22,8 +22,10 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    # Both NULL for a device account (started with one tap, no sign-up):
+    # the student is identified by a long-lived token kept on their device.
+    email = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    password_hash = db.Column(db.String(255), nullable=True)
 
     # --- Profile fields used directly by the matching engine ---
     full_name = db.Column(db.String(120), nullable=True)
@@ -55,7 +57,13 @@ class User(db.Model):
         hashed = bcrypt.hashpw(raw_password.encode("utf-8"), bcrypt.gensalt())
         self.password_hash = hashed.decode("utf-8")
 
+    @property
+    def is_device_account(self) -> bool:
+        return not self.password_hash
+
     def check_password(self, raw_password: str) -> bool:
+        if not self.password_hash:
+            return False
         return bcrypt.checkpw(raw_password.encode("utf-8"), self.password_hash.encode("utf-8"))
 
     def profile_is_complete(self) -> bool:
@@ -66,6 +74,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "is_device_account": self.is_device_account,
             "full_name": self.full_name,
             "gpa": self.gpa,
             "grade_level": self.grade_level,

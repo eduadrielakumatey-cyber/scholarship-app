@@ -48,6 +48,13 @@ export function AuthProvider({ children }) {
     return newUser;
   }
 
+  async function startOnDevice(consents) {
+    const { token, user: newUser } = await api.startOnDevice(consents);
+    api.setToken(token);
+    setUser(newUser);
+    return newUser;
+  }
+
   function logout() {
     api.clearToken();
     setUser(null);
@@ -61,7 +68,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, logout, updateProfile, refreshUser }}
+      value={{ user, loading, login, signup, startOnDevice, logout, updateProfile, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

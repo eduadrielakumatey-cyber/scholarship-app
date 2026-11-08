@@ -7,12 +7,13 @@ different domain/port), and a stateless bearer token is simpler to manage
 across that boundary than cookie-based sessions + CORS credentials.
 
 Endpoints:
+  POST /api/auth/device  -> one-tap start: account tied to this device, no email/password
   POST /api/auth/signup  -> create account, return token
   POST /api/auth/login   -> verify credentials, return token
   GET  /api/auth/me      -> return the current user's profile (requires token)
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, current_app, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
@@ -21,6 +22,40 @@ from app.extensions import db
 from app.models import User
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+
+
+# A device account's token is the only key to it (there's no password to
+# log back in with), so it lasts a year instead of the usual week.
+DEVICE_TOKEN_LIFETIME = timedelta(days=365)
+
+
+def _require_consents(data):
+    """Both boxes start unchecked in the UI; the server re-checks them so an
+    account can't be created without a recorded agreement or by someone
+    who said they're under 13 (COPPA)."""
+    if data.get("age_confirmed") is not True:
+        return jsonify({"error": "you must be at least 13 years old to use ScholarMatch"}), 400
+    if data.get("accepted_terms") is not True:
+        return jsonify({"error": "you must agree to the Terms of Service and Privacy Policy"}), 400
+    return None
+
+
+@auth_bp.post("/device")
+def start_on_device():
+    data = request.get_json(silent=True) or {}
+    problem = _require_consents(data)
+    if problem:
+        return problem
+
+    user = User(
+        terms_accepted_at=datetime.utcnow(),
+        terms_version=current_app.config["TERMS_VERSION"],
+    )
+    db.session.add(user)
+    db.session.commit()
+
+    token = create_access_token(identity=str(user.id), expires_delta=DEVICE_TOKEN_LIFETIME)
+    return jsonify({"token": token, "user": user.to_dict()}), 201
 
 
 @auth_bp.post("/signup")
@@ -33,13 +68,9 @@ def signup():
         return jsonify({"error": "email and password are required"}), 400
     if len(password) < 8:
         return jsonify({"error": "password must be at least 8 characters"}), 400
-    # Both boxes are unchecked by default on the signup form; the server
-    # re-checks them so an account can't be created without a recorded
-    # agreement or by someone who said they're under 13 (COPPA).
-    if data.get("age_confirmed") is not True:
-        return jsonify({"error": "you must be at least 13 years old to use ScholarMatch"}), 400
-    if data.get("accepted_terms") is not True:
-        return jsonify({"error": "you must agree to the Terms of Service and Privacy Policy"}), 400
+    problem = _require_consents(data)
+    if problem:
+        return problem
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "an account with this email already exists"}), 409
 

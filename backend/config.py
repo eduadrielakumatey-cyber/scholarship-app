@@ -21,7 +21,7 @@ class BaseConfig:
     # Bump whenever the Terms of Service or Privacy Policy materially change
     # (keep in sync with LEGAL_VERSION in frontend/src/legal/siteInfo.js).
     # Stored on each user at signup as a record of what they agreed to.
-    TERMS_VERSION = "2026-11-01"
+    TERMS_VERSION = "2026-11-08"
 
     # 🔥 FIX: NO FALLBACK DATABASE (prevents fake scholar_user issue)
     # Some hosts (Railway, Heroku) hand out DATABASE_URL with the old

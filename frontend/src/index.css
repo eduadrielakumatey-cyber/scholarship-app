@@ -4472,3 +4472,14 @@ body {
   border-color: color-mix(in srgb, var(--color-teal) 55%, transparent);
   background: color-mix(in srgb, var(--color-teal) 14%, transparent);
 }
+
+/* /start: the profile form shown full-page, before any profile exists. */
+.start-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+.start-login-link {
+  margin-top: 14px;
+  text-align: center;
+}

@@ -2,8 +2,9 @@
 //
 // Log out, download my data, delete my account -- all self-service and on
 // the same screen, so exercising a privacy right never requires emailing
-// anyone. Deletion asks for the password (backend enforces it too) but no
-// guilt-trip copy or hoops beyond that: leaving should be as easy as
+// anyone. Email accounts confirm deletion with their password (backend
+// enforces it too); device profiles have no password, so the confirm step
+// is the button itself. No guilt-trip copy: leaving should be as easy as
 // joining.
 
 import { useState } from "react";
@@ -13,6 +14,7 @@ import * as api from "../api/client.js";
 
 export default function AccountSettings() {
   const { user, logout } = useAuth();
+  const isDevice = Boolean(user?.is_device_account);
   const navigate = useNavigate();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [password, setPassword] = useState("");
@@ -21,7 +23,7 @@ export default function AccountSettings() {
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate("/");
   }
 
   async function handleExport() {
@@ -48,9 +50,9 @@ export default function AccountSettings() {
     setError(null);
     setBusy(true);
     try {
-      await api.deleteAccount(password);
+      await api.deleteAccount(isDevice ? null : password);
       logout();
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
       setBusy(false);
@@ -62,12 +64,21 @@ export default function AccountSettings() {
       <h2 id="account-heading" className="account-settings__title">
         Account &amp; privacy
       </h2>
-      {user && <p className="field-help">Signed in as {user.email}</p>}
+      {isDevice ? (
+        <p className="field-help">
+          Your profile is saved on this device, with no email or password. Clearing this
+          browser's site data or switching devices starts you fresh.
+        </p>
+      ) : (
+        user && <p className="field-help">Signed in as {user.email}</p>
+      )}
 
       <div className="account-settings__actions">
-        <button type="button" className="secondary-button" onClick={handleLogout}>
-          Log out
-        </button>
+        {!isDevice && (
+          <button type="button" className="secondary-button" onClick={handleLogout}>
+            Log out
+          </button>
+        )}
         <button type="button" className="secondary-button" onClick={handleExport} disabled={busy}>
           Download my data
         </button>
@@ -77,7 +88,7 @@ export default function AccountSettings() {
             className="secondary-button secondary-button--danger"
             onClick={() => setConfirmingDelete(true)}
           >
-            Delete my account
+            {isDevice ? "Delete my profile" : "Delete my account"}
           </button>
         )}
       </div>
@@ -85,9 +96,10 @@ export default function AccountSettings() {
       {confirmingDelete && (
         <form className="account-settings__delete" onSubmit={handleDelete}>
           <p>
-            This permanently deletes your account, profile, saved scholarships and history. It
-            can't be undone.
+            This permanently deletes your {isDevice ? "" : "account, "}profile, saved scholarships
+            and history. It can't be undone.
           </p>
+          {!isDevice && (
           <div className="field-group">
             <label htmlFor="delete-password">Enter your password to confirm</label>
             <input
@@ -99,6 +111,7 @@ export default function AccountSettings() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          )}
           <div className="account-settings__actions">
             <button
               type="submit"

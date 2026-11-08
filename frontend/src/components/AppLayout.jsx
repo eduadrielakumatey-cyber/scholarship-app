@@ -77,7 +77,7 @@ export default function AppLayout({ children }) {
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate("/");
   }
 
   return (
@@ -134,10 +134,18 @@ export default function AppLayout({ children }) {
         </button>
 
         <div className="app-sidebar__account">
-          {user && <span className="app-sidebar__email">{user.email}</span>}
-          <button type="button" className="app-sidebar__logout" onClick={handleLogout}>
-            <LogOut size={16} strokeWidth={2.4} aria-hidden="true" /> Log out
-          </button>
+          {/* A device profile has no login to come back with, so there's no
+              "Log out" to lose it by accident; deleting is in Profile. */}
+          {user?.is_device_account ? (
+            <span className="app-sidebar__email">Saved on this device</span>
+          ) : (
+            <>
+              {user && <span className="app-sidebar__email">{user.email}</span>}
+              <button type="button" className="app-sidebar__logout" onClick={handleLogout}>
+                <LogOut size={16} strokeWidth={2.4} aria-hidden="true" /> Log out
+              </button>
+            </>
+          )}
         </div>
       </aside>
 

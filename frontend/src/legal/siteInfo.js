@@ -20,5 +20,5 @@ export const SITE = {
 // Shown as "Last updated" on each policy. Keep in sync with TERMS_VERSION
 // in backend/config.py -- bump both when the Terms or Privacy Policy
 // materially change.
-export const LEGAL_VERSION = "2026-11-01";
-export const LEGAL_UPDATED_LABEL = "November 1, 2026";
+export const LEGAL_VERSION = "2026-11-08";
+export const LEGAL_UPDATED_LABEL = "November 8, 2026";

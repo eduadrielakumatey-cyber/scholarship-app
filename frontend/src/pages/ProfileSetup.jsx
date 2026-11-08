@@ -4,6 +4,10 @@
 // state, demographics, interests, major. Chip-style multi-select for
 // demographics/interests (tap to toggle) rather than a checkbox list --
 // faster to scan and tap on a phone screen.
+//
+// Doubles as the start screen (/start): with nobody signed in it shows the
+// two required consent boxes, and submitting creates a profile tied to this
+// device -- no email, no password -- then saves the answers in one go.
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -84,7 +88,10 @@ function ChipSelect({ options, selected, onToggle, disabled = false }) {
 }
 
 export default function ProfileSetup() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, startOnDevice } = useAuth();
+  const isStarting = !user;
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -101,7 +108,9 @@ export default function ProfileSetup() {
   const [activeField, setActiveField] = useState(null);
 
   useEffect(() => {
-    if (!user) return;
+    // A brand-new device profile has nothing saved yet: keep what the
+    // student just typed instead of resetting the form to blanks.
+    if (!user || (!user.profile_complete && user.gpa == null && !user.state)) return;
     setForm({
       gpa: user.gpa ?? "",
       grade_level: user.grade_level || "",
@@ -126,6 +135,9 @@ export default function ProfileSetup() {
     setError(null);
     setSaving(true);
     try {
+      if (isStarting) {
+        await startOnDevice({ age_confirmed: ageConfirmed, accepted_terms: acceptedTerms });
+      }
       await updateProfile({
         ...form,
         gpa: form.gpa === "" ? null : Number(form.gpa),
@@ -153,10 +165,11 @@ export default function ProfileSetup() {
   return (
     <div className="screen">
       <Guide mood={reaction.mood} message={reaction.message} size={64} className="guide-dock profile-guide" />
-      <h1 className="page-title">Your profile</h1>
+      <h1 className="page-title">{isStarting ? "Find your matches" : "Your profile"}</h1>
       <p className="page-subtitle">
-        This is exactly what the matching engine uses to estimate your fit: the more accurate,
-        the better your matches.
+        {isStarting
+          ? "No sign-up. Answer a few questions and start swiping. Your profile stays on this device."
+          : "This is exactly what the matching engine uses to estimate your fit: the more accurate, the better your matches."}
       </p>
 
       <form onSubmit={handleSubmit} onFocusCapture={trackField} onClickCapture={trackField}>
@@ -268,6 +281,34 @@ export default function ProfileSetup() {
           </div>
         </div>
 
+        {isStarting && (
+          <div className="consent-group">
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                required
+                checked={ageConfirmed}
+                onChange={(e) => setAgeConfirmed(e.target.checked)}
+              />
+              <span>
+                I'm at least 13 years old. If I'm under 18, my parent or guardian has said it's OK.
+              </span>
+            </label>
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                required
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+              />
+              <span>
+                I agree to the <Link to="/terms">Terms of Service</Link> and{" "}
+                <Link to="/privacy">Privacy Policy</Link>.
+              </span>
+            </label>
+          </div>
+        )}
+
         {error && (
           <p className="error-text" role="alert">
             {error}
@@ -275,11 +316,17 @@ export default function ProfileSetup() {
         )}
 
         <button className="primary-button" type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save and find matches"}
+          {saving ? "Saving..." : isStarting ? "Start swiping" : "Save and find matches"}
         </button>
+
+        {isStarting && (
+          <p className="field-help start-login-link">
+            Made an account with an email before? <Link to="/login">Log in</Link>
+          </p>
+        )}
       </form>
 
-      <AccountSettings />
+      {!isStarting && <AccountSettings />}
       <LegalFooter />
     </div>
   );

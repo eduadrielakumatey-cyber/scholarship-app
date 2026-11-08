@@ -42,8 +42,10 @@ export function Privacy() {
       <h2>What we collect</h2>
       <ul>
         <li>
-          <strong>Account:</strong> your email address and a securely hashed password (we never
-          store or see your actual password).
+          <strong>Account:</strong> none needed. When you start, we create a profile tied to
+          your device: a random key is saved in your browser, with no name, email or password.
+          (Older accounts made with an email keep that email and a securely hashed password; we
+          never store or see the actual password.)
         </li>
         <li>
           <strong>Matching profile:</strong> GPA, grade level, state, intended major and
@@ -94,7 +96,7 @@ export function Privacy() {
 
       <h2>How long we keep it</h2>
       <p>
-        Until you delete your account. Deleting removes your account, profile and activity from
+        Until you delete your profile. Deleting removes your profile and activity from
         our database immediately; copies in routine backups are overwritten within 30 days.
       </p>
 
@@ -107,7 +109,7 @@ export function Privacy() {
           <strong>Correct it:</strong> edit your profile at any time.
         </li>
         <li>
-          <strong>Delete it:</strong> Profile → "Delete my account". No email or waiting period
+          <strong>Delete it:</strong> Profile → "Delete my profile". No email or waiting period
           needed.
         </li>
       </ul>
@@ -196,8 +198,9 @@ export function Terms() {
 
       <h2>Your account</h2>
       <p>
-        Keep your password private and give accurate profile information. You can delete your
-        account at any time from your profile. We may suspend accounts that break these terms.
+        Your profile lives on the device you started it on, so anyone using that browser can
+        see it. Give accurate profile information. You can delete your profile at any time from
+        the Profile page. We may suspend profiles that break these terms.
       </p>
 
       <h2>Acceptable use</h2>
@@ -256,9 +259,9 @@ export function Cookies() {
         <tbody>
           <tr>
             <td>scholarmatch_token</td>
-            <td>Session storage</td>
-            <td>Keeps you signed in</td>
-            <td>Until you close the tab or log out</td>
+            <td>Local storage</td>
+            <td>Keeps your profile on this device, so you don't need to sign in</td>
+            <td>Until you delete your profile or clear site data (the key expires after a year)</td>
           </tr>
           <tr>
             <td>scholarmatch_storage_notice_dismissed</td>

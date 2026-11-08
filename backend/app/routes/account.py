@@ -60,8 +60,12 @@ def delete_account():
     data = request.get_json(silent=True) or {}
 
     # Re-asking for the password means a stolen/forgotten-open session
-    # can't wipe someone's account with a single request.
-    if not user.check_password(data.get("password") or ""):
+    # can't wipe someone's account with a single request. A device account
+    # has no password, so it confirms with an explicit {"confirm": true}.
+    if user.is_device_account:
+        if data.get("confirm") is not True:
+            return jsonify({"error": "confirm is required to delete this profile"}), 400
+    elif not user.check_password(data.get("password") or ""):
         return jsonify({"error": "incorrect password"}), 403
 
     # Interactions go with it via the relationship's delete-orphan cascade.

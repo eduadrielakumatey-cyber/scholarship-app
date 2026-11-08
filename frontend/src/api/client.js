@@ -7,16 +7,44 @@ const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
 const TOKEN_KEY = "scholarmatch_token";
 
+// Kept in localStorage so the profile stays on this device between visits:
+// a device account (no email/password) has no other way back in. Older
+// builds used sessionStorage, so read that too and move it over once.
+function store(fn) {
+  try {
+    return fn();
+  } catch {
+    return null; // storage blocked (private mode etc.): works for this visit only
+  }
+}
+
+let memoryToken = null;
+
 export function getToken() {
-  return window.sessionStorage.getItem(TOKEN_KEY);
+  return (
+    store(() => {
+      const legacy = window.sessionStorage.getItem(TOKEN_KEY);
+      if (legacy) {
+        window.localStorage.setItem(TOKEN_KEY, legacy);
+        window.sessionStorage.removeItem(TOKEN_KEY);
+      }
+      return window.localStorage.getItem(TOKEN_KEY);
+    }) || memoryToken
+  );
 }
 
 export function setToken(token) {
-  if (token) window.sessionStorage.setItem(TOKEN_KEY, token);
+  if (!token) return;
+  memoryToken = token;
+  store(() => window.localStorage.setItem(TOKEN_KEY, token));
 }
 
 export function clearToken() {
-  window.sessionStorage.removeItem(TOKEN_KEY);
+  memoryToken = null;
+  store(() => {
+    window.localStorage.removeItem(TOKEN_KEY);
+    window.sessionStorage.removeItem(TOKEN_KEY);
+  });
 }
 
 async function request(path, { method = "GET", body, auth = true } = {}) {
@@ -34,8 +62,8 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 
   if (response.status === 401 && auth) {
     clearToken();
-    window.location.href = "/login";
-    throw new Error("Session expired. Please log in again.");
+    window.location.href = "/";
+    throw new Error("Your session ended. Please start again.");
   }
 
   const data = await response.json().catch(() => ({}));
@@ -46,6 +74,10 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 }
 
 // --- Auth ---
+// One tap, no email or password: makes a profile tied to this device.
+export const startOnDevice = (consents) =>
+  request("/api/auth/device", { method: "POST", body: consents, auth: false });
+
 export const signup = (email, password, consents) =>
   request("/api/auth/signup", {
     method: "POST",
@@ -76,8 +108,12 @@ export const updateScholarshipStatus = (id, status) =>
 
 // --- Account (privacy controls) ---
 export const exportMyData = () => request("/api/account/export");
+// Email accounts confirm with their password; device accounts with confirm: true.
 export const deleteAccount = (password) =>
-  request("/api/account", { method: "DELETE", body: { password } });
+  request("/api/account", {
+    method: "DELETE",
+    body: password ? { password } : { confirm: true },
+  });
 
 // --- Stats ---
 export const getStats = () => request("/api/stats");

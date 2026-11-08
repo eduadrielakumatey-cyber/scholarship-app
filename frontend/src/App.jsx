@@ -2,8 +2,9 @@
 //
 // Top-level route table. Wraps everything in <AuthProvider> so any page
 // can call useAuth(), and gates the main app behind <RequireAuth> so a
-// logged-out visitor is sent to /login instead of hitting a broken
-// authenticated page.
+// visitor with no profile on this device is sent to the homepage instead
+// of hitting a broken page. There's no sign-up: /start makes a profile
+// tied to this device. /login stays only for older email accounts.
 
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
@@ -22,8 +23,28 @@ import AppLayout from "./components/AppLayout.jsx";
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="screen" />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
   return <AppLayout>{children}</AppLayout>;
+}
+
+// The no-sign-up start screen. Someone who already has a profile on this
+// device goes straight to their deck.
+function Start() {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="screen" />;
+  if (user) return <Navigate to="/" replace />;
+  return (
+    <div className="start-page">
+      <ProfileSetup />
+    </div>
+  );
+}
+
+// Old "/login?mode=signup" links (shared posts, bookmarks) go to /start.
+function LoginRoute() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("mode") === "signup") return <Navigate to="/start" replace />;
+  return <Login />;
 }
 
 // "/" is the public homepage for visitors and the swipe deck once signed in.
@@ -41,7 +62,8 @@ function Home() {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/start" element={<Start />} />
+      <Route path="/login" element={<LoginRoute />} />
       {/* Policies are public: people must be able to read them before signing up. */}
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />

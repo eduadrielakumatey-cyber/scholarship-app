@@ -37,8 +37,8 @@ export default function StorageNotice() {
   return (
     <div className="storage-notice" role="region" aria-label="Cookie and storage notice">
       <p>
-        We don't use cookies, ads or tracking. We only store what's needed to keep you signed
-        in. <Link to="/cookies">Cookie policy</Link>
+        We don't use cookies, ads or tracking. We only store what's needed to keep your profile
+        on this device. <Link to="/cookies">Cookie policy</Link>
       </p>
       <button type="button" className="storage-notice__button" onClick={dismiss}>
         Got it
