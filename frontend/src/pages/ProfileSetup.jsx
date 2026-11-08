@@ -318,12 +318,6 @@ export default function ProfileSetup() {
         <button className="primary-button" type="submit" disabled={saving}>
           {saving ? "Saving..." : isStarting ? "Start swiping" : "Save and find matches"}
         </button>
-
-        {isStarting && (
-          <p className="field-help start-login-link">
-            Made an account with an email before? <Link to="/login">Log in</Link>
-          </p>
-        )}
       </form>
 
       {!isStarting && <AccountSettings />}
