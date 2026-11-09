@@ -11,6 +11,9 @@ import App from "./App.jsx";
 import "@fontsource/libre-franklin/600.css";
 import "@fontsource/libre-franklin/700.css";
 import "./index.css";
+import { setupPwa } from "./pwa.js";
+
+setupPwa();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

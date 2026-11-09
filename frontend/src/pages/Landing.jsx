@@ -426,6 +426,10 @@ const FAQ = [
     a: "No. Real scholarships don't charge application fees. New listings that ask for one are rejected before they reach your deck.",
   },
   {
+    q: "Is there an app?",
+    a: "Yes, and it's free. On iPhone, open this site in Safari, tap Share, then Add to Home Screen. On Android, tap Install when Chrome offers it (or menu, then Add to Home screen). It opens full screen with its own icon.",
+  },
+  {
     q: "Can I use it on my phone and my laptop?",
     a: "Yes. On the device you started on, open Profile and tap Get a code. Then scan the QR code or type the code at /link on the other device. Your profile and saved scholarships come with you.",
   },

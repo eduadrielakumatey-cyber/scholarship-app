@@ -19,6 +19,7 @@ import HowItWorks from "./pages/HowItWorks.jsx";
 import LinkDevice from "./pages/LinkDevice.jsx";
 import { Privacy, Terms, Cookies, Licenses } from "./pages/Legal.jsx";
 import StorageNotice from "./components/StorageNotice.jsx";
+import InstallPrompt from "./components/InstallPrompt.jsx";
 import AppLayout from "./components/AppLayout.jsx";
 
 function RequireAuth({ children }) {
@@ -122,6 +123,7 @@ export default function App() {
       <AuthProvider>
         <AppRoutes />
         <StorageNotice />
+        <InstallPrompt />
       </AuthProvider>
     </div>
   );

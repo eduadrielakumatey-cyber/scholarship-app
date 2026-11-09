@@ -4537,3 +4537,30 @@ body {
   font-weight: 600;
   text-decoration: underline;
 }
+
+/* Home-screen install banner (reuses the storage notice's look). */
+.install-prompt__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+}
+.install-prompt__share {
+  vertical-align: -2px;
+}
+.install-prompt__close {
+  flex-shrink: 0;
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+/* The final theme makes buttons solid ink; give this one light text to match
+   .primary-button (it was dark-on-dark in the storage notice too). */
+.storage-notice__button {
+  background: var(--ink);
+  color: #fffaf2;
+}
