@@ -228,6 +228,35 @@ def test_separate_awards_from_one_foundation_are_not_duplicates():
     ) is None
 
 
+def test_shared_names_and_endings_are_not_duplicates():
+    # Real cases from the Maryland batch: different people's memorial funds,
+    # different class years, and two separate state programs.
+    index = ExistingIndex()
+    index.add("Charm Satree Memorial Scholarship", "Salisbury University", "https://salisbury.academicworks.com/opportunities/1")
+    index.add("Allegany High School Class of 1948", "Allegany College of Maryland", "https://allegany.academicworks.com/opportunities/2")
+    index.add("Maryland State Delegate Scholarship", "MHEC", "https://mhec.maryland.gov/delegate")
+    assert index.duplicate_reason(
+        "Paul S. Andrews Memorial Scholarship", "Salisbury University", "https://salisbury.academicworks.com/opportunities/3"
+    ) is None
+    assert index.duplicate_reason(
+        "Allegany High School Class of 1962", "Allegany College of Maryland", "https://allegany.academicworks.com/opportunities/4"
+    ) is None
+    assert index.duplicate_reason("Maryland Senatorial Scholarship", "MHEC", "https://mhec.maryland.gov/senatorial") is None
+
+
+def test_each_school_on_a_shared_portal_is_its_own_site():
+    index = ExistingIndex()
+    index.add("Keith Grier Scholarship", "Towson University", "https://towson.academicworks.com/opportunities/1")
+    # Same wording at a different school on the same platform is a different award...
+    assert index.duplicate_reason(
+        "Keith Grier Scholarship Fund", "Other College", "https://csmd.academicworks.com/opportunities/9"
+    ) is None
+    # ...but still a duplicate at the same school.
+    assert index.duplicate_reason(
+        "Keith Grier Scholarship Fund", "Towson U", "https://towson.academicworks.com/opportunities/9"
+    ) is not None
+
+
 # ---------------------------------------------------------------------------
 # JavaScript-rendered pages
 # ---------------------------------------------------------------------------
@@ -286,3 +315,10 @@ def test_residency_in_description_requires_states():
     assert residency_mentioned("For Texas high school seniors with a 3.0 GPA")
     assert residency_mentioned("For US citizens or permanent residents of Hispanic heritage") is None
     assert residency_mentioned("Finalists fly to Washington DC for the finals") is None
+
+
+def test_single_state_awards_get_a_smaller_applicant_pool():
+    from scraper.daily_discovery import estimate_applicant_pool
+    assert estimate_applicant_pool(500) == 800
+    assert estimate_applicant_pool(500, ["MD"]) == 80
+    assert estimate_applicant_pool(2000, ["MD", "DC"]) == 2500  # multi-state stays national-sized

@@ -97,7 +97,7 @@ export default function ProfileSetup() {
   const [form, setForm] = useState({
     gpa: "",
     grade_level: "",
-    state: "",
+    state: "MD",
     major: "",
     demographics: [],
     demographics_consent: false,
@@ -224,6 +224,12 @@ export default function ProfileSetup() {
               </option>
             ))}
           </select>
+          {form.state && form.state !== "MD" && (
+            <p className="field-help">
+              ScholarMatch is built for Maryland students right now, so other states have mostly
+              national awards for now.
+            </p>
+          )}
         </div>
 
         <div className="field-group">

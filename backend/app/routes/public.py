@@ -57,8 +57,13 @@ def preview():
     )
     total_value = live.with_entities(func.coalesce(func.sum(Scholarship.award_amount), 0)).scalar()
 
+    maryland = live.filter(Scholarship.states.any("MD"))
+    maryland_value = maryland.with_entities(func.coalesce(func.sum(Scholarship.award_amount), 0)).scalar()
+
     return jsonify({
         "live_count": live.count(),
+        "maryland_count": maryland.count(),
+        "maryland_value": float(maryland_value or 0),
         "rolling_count": live.filter(Scholarship.deadline.is_(None)).count(),
         "total_value": float(total_value or 0),
         "demo_cards": [preview_card(s) for s in demo],

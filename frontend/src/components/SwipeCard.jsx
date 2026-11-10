@@ -100,7 +100,9 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
   if (scholarship.grade_levels && scholarship.grade_levels.length > 0) {
     tags.push(gradeLevelsTag(scholarship.grade_levels));
   }
-  if (scholarship.states && scholarship.states.length > 0) {
+  if (scholarship.states && scholarship.states.length === 1) {
+    tags.push(`${scholarship.states[0]} only`);
+  } else if (scholarship.states && scholarship.states.length > 0) {
     tags.push(scholarship.states.join(", "));
   } else {
     tags.push("National");
@@ -168,7 +170,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
           {tags.map((tag, i) => (
             <span
               key={i}
-              className={`card-tag${tag === "No essay" ? " card-tag--easy" : ""}`}
+              className={`card-tag${tag === "No essay" || tag.endsWith(" only") ? " card-tag--easy" : ""}`}
             >
               {tag}
             </span>

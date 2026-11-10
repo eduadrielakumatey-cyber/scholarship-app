@@ -105,6 +105,9 @@ BLOCKED_DOMAINS = {
     "bit.ly", "tinyurl.com", "t.co", "forms.gle", "docs.google.com",
 }
 
+# Platforms where each subdomain is a different school or foundation.
+MULTI_TENANT_PORTALS = {"academicworks.com", "smarterselect.com", "communityforce.com", "awardspring.com"}
+
 # Words that don't help tell one scholarship's name from another's.
 TITLE_STOPWORDS = {
     "the", "and", "for", "of", "in", "a", "an", "to", "scholarship", "scholarships", "scholar", "scholars",
@@ -160,15 +163,24 @@ def _same_site(a: str, b: str) -> bool:
     return a == b or a.endswith("." + b) or b.endswith("." + a) or root(a) == root(b)
 
 
-def estimate_applicant_pool(amount: float) -> int:
+# An award limited to one state's residents (or one county, or one college)
+# draws from a far smaller pool than a national one of the same size.
+LOCAL_POOL_DIVISOR = 10
+
+
+def estimate_applicant_pool(amount: float, states: list | None = None) -> int:
     # Same buckets as scraper/sources/base.py so new rows score like old ones.
     if amount < 1000:
-        return 800
-    if amount < 5000:
-        return 2500
-    if amount < 20000:
-        return 4000
-    return 6000
+        pool = 800
+    elif amount < 5000:
+        pool = 2500
+    elif amount < 20000:
+        pool = 4000
+    else:
+        pool = 6000
+    if states and len(states) == 1:
+        pool //= LOCAL_POOL_DIVISOR
+    return pool
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +327,23 @@ def _distinctive_words(title: str) -> set[str]:
     return {t for t in normalize_text(title).split() if len(t) >= 3 and t not in TITLE_STOPWORDS}
 
 
+def _similar(a: str, b: str) -> float:
+    """How alike two names are, ignoring filler like "Memorial Scholarship",
+    so "Paul S. Andrews Memorial Scholarship" and "Charm Satree Memorial
+    Scholarship" don't look alike just because they end the same way."""
+    da = " ".join(t for t in normalize_text(a).split() if t not in TITLE_STOPWORDS)
+    db = " ".join(t for t in normalize_text(b).split() if t not in TITLE_STOPWORDS)
+    if not da or not db:
+        da, db = normalize_text(a), normalize_text(b)
+    return difflib.SequenceMatcher(None, da, db).ratio()
+
+
+def _different_numbers(a: str, b: str) -> bool:
+    """"Class of 1948" and "Class of 1962" are separate awards."""
+    na, nb = set(re.findall(r"\d+", a)), set(re.findall(r"\d+", b))
+    return bool(na and nb and na != nb)
+
+
 def title_on_page(title: str, page: str) -> bool:
     tokens = [t for t in normalize_text(title).split() if len(t) >= 3 and t not in TITLE_STOPWORDS]
     if not tokens:
@@ -434,7 +463,13 @@ class ExistingIndex:
     @staticmethod
     def _site(url: str | None) -> str:
         host = _host(url or "")
-        return ".".join(host.split(".")[-2:]) if host else ""
+        if not host:
+            return ""
+        domain = ".".join(host.split(".")[-2:])
+        # Shared portals host many unrelated schools and foundations, one per
+        # subdomain (allegany.academicworks.com, csmd.academicworks.com), so
+        # each subdomain counts as its own website.
+        return host if domain in MULTI_TENANT_PORTALS else domain
 
     def add(self, title: str, org: str | None, url: str | None) -> None:
         self.keys.add((_key(title), _key(org)))
@@ -461,7 +496,9 @@ class ExistingIndex:
             return "same official URL"
         t = normalize_text(title)
         for other in self.titles_by_org.get(_key(org), []):
-            if difflib.SequenceMatcher(None, t, other).ratio() >= 0.85:
+            if _different_numbers(t, other):
+                continue
+            if _similar(t, other) >= 0.85:
                 return f"near-identical title from same organization (\"{other}\")"
         # Same website: similar wording, or one name's distinctive words all
         # appear in the other's ("Ron Brown Scholar Program" vs "Ron Brown
@@ -470,7 +507,9 @@ class ExistingIndex:
         # "Coolidge Senator John Heinz Scholarship") stay distinct.
         mine = _distinctive_words(t)
         for other in self.titles_by_site.get(self._site(url), []):
-            if difflib.SequenceMatcher(None, t, other).ratio() >= 0.75:
+            if _different_numbers(t, other):
+                continue
+            if _similar(t, other) >= 0.75:
                 return f"similar title on the same website (\"{other}\")"
             theirs = _distinctive_words(other)
             small, big = sorted((mine, theirs), key=len)
@@ -513,7 +552,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         majors=[m.strip().lower() for m in (c.get("majors") or []) if m and m.strip()],
         interests=normalize_interests(c.get("interests") or []),
         estimated_hours_to_apply=hours,
-        estimated_applicant_pool=estimate_applicant_pool(amount),
+        estimated_applicant_pool=estimate_applicant_pool(amount, c.get("states")),
         num_awards=c.get("num_awards") or 1,
         source_name=batch_source,
         source_url=c["source_url"].strip(),

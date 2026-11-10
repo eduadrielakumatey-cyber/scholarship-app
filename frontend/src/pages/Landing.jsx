@@ -415,7 +415,11 @@ function HowItWorksSteps({ preview }) {
 const FAQ = [
   {
     q: "Is ScholarMatch free?",
-    a: "Yes, and there's no sign-up. Building your deck and tracking deadlines are free, and your profile stays on your device.",
+    a: "Yes, and there's no sign-up: no email or password. Building your deck and tracking deadlines are free.",
+  },
+  {
+    q: "Is it only for Maryland?",
+    a: "Right now ScholarMatch is built for Maryland students. We search Maryland's local clubs, colleges, county funds and state grants every day, plus national awards anyone can win. Students in other states can still use it, but they'll mostly see national awards for now.",
   },
   {
     q: "Where do the scholarships come from?",
@@ -462,12 +466,13 @@ export default function Landing() {
       <section className="landing-hero">
         <div className="landing-hero__copy">
           <h1 className="landing-h1">
-            Scholarships you can <span className="landing-underline">actually win</span>
+            Maryland scholarships you can <span className="landing-underline">actually win</span>
           </h1>
           <p className="landing-lede">
-            Stop scrolling through lists you don't qualify for. ScholarMatch filters out the
-            awards you can't get, ranks the rest by fit and payoff, and keeps every deadline in
-            one place.
+            Big scholarship sites show you every award in America. ScholarMatch finds the
+            Maryland money near you, from local clubs, colleges, county funds and the state, where
+            far fewer people apply. It hides what you can't win and keeps every deadline in one
+            place.
           </p>
           <div className="landing-ctas">
             <Link to="/start" className="landing-btn landing-btn--dark landing-btn--lg">
@@ -481,9 +486,9 @@ export default function Landing() {
           {preview && (
             <p className="landing-note">
               <ShieldCheck size={16} aria-hidden="true" />
-              {preview.live_count} scholarships open right now, worth{" "}
-              {formatMoney(preview.total_value, { short: true })} combined. Every link goes to the
-              provider's own site.
+              {preview.maryland_count ?? 0} Maryland scholarships open right now, plus{" "}
+              {Math.max(0, preview.live_count - (preview.maryland_count ?? 0))} national ones. Every
+              link goes to the provider's own site.
             </p>
           )}
         </div>
