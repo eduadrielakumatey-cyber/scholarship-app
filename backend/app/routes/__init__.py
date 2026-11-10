@@ -15,7 +15,6 @@ from app.routes.stats import stats_bp
 from app.routes.account import account_bp
 from app.routes.public import public_bp
 from app.routes.apply import apply_bp
-from app.routes.sponsor import sponsor_bp
 
 
 def register_routes(app):
@@ -27,4 +26,3 @@ def register_routes(app):
     app.register_blueprint(account_bp)
     app.register_blueprint(public_bp)
     app.register_blueprint(apply_bp)
-    app.register_blueprint(sponsor_bp)

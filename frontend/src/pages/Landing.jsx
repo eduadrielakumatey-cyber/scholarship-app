@@ -419,15 +419,11 @@ const FAQ = [
   },
   {
     q: "Can I apply through the app?",
-    a: "Yes. Scholarships posted on ScholarMatch by local sponsors are applied to right in the app. For everything else, the Apply screen walks you through it: what you need, your essay (written and saved in the app so you can reuse it), the official form, and tracking it as submitted.",
-  },
-  {
-    q: "I want to offer a scholarship. How?",
-    a: "Local businesses, clubs and families can post one for free at /sponsor. Students apply in the app and you pick the winner from a private page. You pay the winner directly.",
+    a: "You submit on each scholarship's own official form, but ScholarMatch gets you ready: the Apply screen shows what you need, lets you write and save your essay in the app (and reuse it for the next one), opens the official form, and tracks it once you've submitted.",
   },
   {
     q: "Is it only for Maryland?",
-    a: "Right now ScholarMatch is built for Maryland students. We search Maryland's local clubs, colleges, county funds and state grants every day, plus national awards anyone can win. Students in other states can still use it, but they'll mostly see national awards for now.",
+    a: "Yes, for now. ScholarMatch is just for Maryland students and only lists Maryland scholarships: local clubs, colleges, county funds and state grants, checked every day. We'd rather do one state really well before adding more.",
   },
   {
     q: "Where do the scholarships come from?",
@@ -494,9 +490,8 @@ export default function Landing() {
           {preview && (
             <p className="landing-note">
               <ShieldCheck size={16} aria-hidden="true" />
-              {preview.maryland_count ?? 0} Maryland scholarships open right now, plus{" "}
-              {Math.max(0, preview.live_count - (preview.maryland_count ?? 0))} national ones. Every
-              link goes to the provider's own site.
+              {preview.live_count} Maryland scholarships open right now. Every link goes to the
+              provider's own site.
             </p>
           )}
         </div>

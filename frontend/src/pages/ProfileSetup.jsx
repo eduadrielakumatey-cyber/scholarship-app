@@ -18,12 +18,6 @@ import AccountSettings from "../components/AccountSettings.jsx";
 import LegalFooter from "../components/LegalFooter.jsx";
 import Guide from "../components/guide/Guide.jsx";
 
-const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME",
-  "MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA",
-  "RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
-];
-
 const DEMOGRAPHIC_OPTIONS = [
   "first-generation", "female", "male", "veteran", "rural", "lgbtq+",
   "hispanic", "black", "asian", "native-american", "disability",
@@ -114,7 +108,7 @@ export default function ProfileSetup() {
     setForm({
       gpa: user.gpa ?? "",
       grade_level: user.grade_level || "",
-      state: user.state || "",
+      state: "MD", // Maryland-only launch
       major: user.major || "",
       demographics: user.demographics || [],
       demographics_consent: Boolean(user.demographics_consent),
@@ -209,27 +203,11 @@ export default function ProfileSetup() {
 
         <div className="field-group">
           <label htmlFor="state">State</label>
-          <select
-            id="state"
-            value={form.state}
-            onChange={(e) => setForm({ ...form, state: e.target.value })}
-            required
-          >
-            <option value="" disabled>
-              Select state
-            </option>
-            {US_STATES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
+          {/* Maryland-only launch: the state is fixed. */}
+          <select id="state" value="MD" disabled>
+            <option value="MD">Maryland</option>
           </select>
-          {form.state && form.state !== "MD" && (
-            <p className="field-help">
-              ScholarMatch is built for Maryland students right now, so other states have mostly
-              national awards for now.
-            </p>
-          )}
+          <p className="field-help">ScholarMatch is just for Maryland students right now.</p>
         </div>
 
         <div className="field-group">

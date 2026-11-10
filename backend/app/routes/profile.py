@@ -10,7 +10,7 @@ needs: GPA, grade level, state, demographics, interests, major.
 
 from datetime import datetime
 
-from flask import Blueprint, request, jsonify
+from flask import current_app, Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
@@ -55,6 +55,9 @@ def update_profile():
 
     if "state" in data and data["state"] and not is_valid_state(data["state"]):
         return jsonify({"error": "state must be a valid two-letter US state code"}), 400
+    focus = current_app.config.get("FOCUS_STATE")
+    if focus and "state" in data and data["state"] and data["state"].strip().upper() != focus:
+        return jsonify({"error": "ScholarMatch is only for Maryland students right now"}), 400
 
     # Demographics are sensitive, so they're only stored with an explicit
     # opt-in. Withdrawing consent erases whatever was saved.

@@ -127,29 +127,6 @@ export const getMyApplication = (id) => request(`/api/scholarships/${id}/applica
 export const withdrawApplication = (id) =>
   request(`/api/scholarships/${id}/application`, { method: "DELETE" });
 
-// --- Sponsors (no profile needed) ---
-export const postSponsorScholarship = (fields) =>
-  request("/api/sponsor/scholarships", { method: "POST", body: fields, auth: false });
-export const getSponsorReview = (token) =>
-  request(`/api/sponsor/review/${encodeURIComponent(token)}`, { auth: false });
-export const decideApplication = (token, appId, status) =>
-  request(`/api/sponsor/review/${encodeURIComponent(token)}/applications/${appId}`, {
-    method: "PATCH",
-    body: { status },
-    auth: false,
-  });
-
-// --- Admin: approve sponsor scholarships (key kept only for this tab) ---
-async function adminRequest(path, key, method = "GET") {
-  const response = await fetch(`${BASE_URL}${path}`, { method, headers: { "X-Admin-Key": key } });
-  const data = response.status === 204 ? {} : await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Something went wrong.");
-  return data;
-}
-export const adminPending = (key) => adminRequest("/api/admin/pending", key);
-export const adminApprove = (key, id) => adminRequest(`/api/admin/scholarships/${id}/approve`, key, "POST");
-export const adminReject = (key, id) => adminRequest(`/api/admin/scholarships/${id}`, key, "DELETE");
-
 // --- Account (privacy controls) ---
 export const exportMyData = () => request("/api/account/export");
 // Email accounts confirm with their password; device accounts with confirm: true.

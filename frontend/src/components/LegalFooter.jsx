@@ -15,7 +15,6 @@ export default function LegalFooter() {
         <Link to="/privacy">Privacy</Link>
         <Link to="/cookies">Cookies</Link>
         <Link to="/licenses">Licenses</Link>
-        <Link to="/sponsor">Offer a scholarship</Link>
       </nav>
       <p className="legal-footer__business">
         {SITE.appName} is operated by {SITE.operatorName}{SITE.mailingAddress && `, ${SITE.mailingAddress}`}.{" "}

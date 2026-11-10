@@ -38,6 +38,8 @@ from __future__ import annotations
 
 from datetime import date
 
+from flask import current_app
+
 from app.extensions import db
 from app.models import Scholarship, Interaction
 from app.services import preferences
@@ -48,9 +50,16 @@ FINAL_SCORE_VALUE_WEIGHT = 0.5
 
 
 def _active_not_expired_query(today: date):
-    return Scholarship.query.filter(Scholarship.is_active.is_(True)).filter(
+    query = Scholarship.query.filter(Scholarship.is_active.is_(True)).filter(
         db.or_(Scholarship.deadline.is_(None), Scholarship.deadline >= today)
     )
+    # ScholarMatch launches in one state (FOCUS_STATE, "MD"): only awards
+    # open to that state's students are shown -- no national or other-state
+    # ones. Nothing is deleted; clearing the setting shows everything again.
+    focus = current_app.config.get("FOCUS_STATE")
+    if focus:
+        query = query.filter(Scholarship.states.any(focus))
+    return query
 
 
 def _percentile(value: float, pool: list[float]) -> float:

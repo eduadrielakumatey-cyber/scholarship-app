@@ -38,6 +38,10 @@ class BaseConfig:
     # and replace ones older than 4 minutes instead of failing a request.
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 240}
 
+    # Launch market: only scholarships open to this state's students are
+    # shown, and new profiles must be from it. Set FOCUS_STATE="" to go national.
+    FOCUS_STATE = os.environ.get("FOCUS_STATE", "MD").strip().upper() or None
+
     # Unlocks /admin (approving sponsor-posted scholarships). Unset = admin off.
     ADMIN_KEY = os.environ.get("ADMIN_KEY") or None
 
