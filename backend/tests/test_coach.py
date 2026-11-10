@@ -70,7 +70,10 @@ def install_fake(monkeypatch, reply, stop_reason="end_turn"):
     import anthropic
 
     fake = FakeMessages(reply, stop_reason)
-    monkeypatch.setattr(anthropic, "Anthropic", lambda **kw: SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+    monkeypatch.setattr(
+        anthropic, "Anthropic",
+        lambda **kw: SimpleNamespace(beta=SimpleNamespace(messages=fake), messages=fake),
+    )
     return fake
 
 
@@ -102,3 +105,12 @@ def test_refusal_and_garbled_replies_become_friendly_errors(monkeypatch):
     install_fake(monkeypatch, "not json")
     with pytest.raises(coach.CoachError, match="garbled"):
         coach.get_feedback(ESSAY, None, None, None, api_key="k", model="m")
+
+
+def test_haiku_requests_leave_out_fallbacks(monkeypatch):
+    # Haiku has no server-side fallback; sending the parameter would fail every request.
+    fake = install_fake(monkeypatch, GOOD_REPLY)
+    coach.get_feedback(ESSAY, "Why nursing?", None, None, api_key="k", model="claude-haiku-5-5")
+    call = fake.calls[0]
+    assert "fallbacks" not in call and "betas" not in call
+    assert call["output_config"]["format"]["type"] == "json_schema"

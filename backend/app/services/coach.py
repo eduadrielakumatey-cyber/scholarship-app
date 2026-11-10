@@ -77,6 +77,12 @@ FEEDBACK_SCHEMA = {
 }
 
 
+def supports_fallbacks(model: str) -> bool:
+    """Server-side refusal fallbacks exist for the Opus, Sonnet and Fable
+    lines; Haiku requests must not send the parameter."""
+    return not (model or "").startswith("claude-haiku")
+
+
 class CoachError(Exception):
     """A problem to show the student (bad input, service unavailable)."""
 
@@ -137,17 +143,22 @@ def get_feedback(essay_html: str, question: str | None, word_limit: int | None, 
     import anthropic
 
     client = anthropic.Anthropic(api_key=api_key, timeout=90.0, max_retries=2)
+    request = dict(
+        model=model,
+        max_tokens=16000,
+        system=SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": build_user_message(essay, question, word_limit, scholarship)}],
+        output_config={"effort": "medium", "format": {"type": "json_schema", "schema": FEEDBACK_SCHEMA}},
+    )
     try:
-        response = client.beta.messages.create(
-            model=model,
-            max_tokens=16000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": build_user_message(essay, question, word_limit, scholarship)}],
-            output_config={"effort": "medium", "format": {"type": "json_schema", "schema": FEEDBACK_SCHEMA}},
+        if supports_fallbacks(model):
             # If the model declines, the API retries on a fallback model in the same call.
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-        )
+            response = client.beta.messages.create(
+                **request, betas=["server-side-fallback-2026-07-01"], fallbacks="default"
+            )
+        else:
+            # Haiku has no server-side fallback; a decline comes back as a refusal.
+            response = client.messages.create(**request)
     except anthropic.RateLimitError:
         raise CoachError("The coach is busy right now. Try again in a minute.")
     except (anthropic.APIConnectionError, anthropic.APITimeoutError):
