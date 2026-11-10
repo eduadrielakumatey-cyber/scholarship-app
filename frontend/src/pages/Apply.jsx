@@ -13,6 +13,7 @@ import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, ExternalLink, Trophy } from "lucide-react";
 import * as api from "../api/client.js";
 import EssayEditor, { wordCount } from "../components/EssayEditor.jsx";
+import QuestionList from "../components/QuestionList.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const GRADE_LABELS = {
@@ -207,21 +208,23 @@ function OutsideApply({ s }) {
         {s.description && <p className="apply-desc">{s.description}</p>}
       </li>
 
-      {needsEssay && (
-        <li>
-          <h2>Get your essay ready</h2>
+      <li>
+        <h2>Answer their questions</h2>
+        {(s.questions || []).length > 0 && (
           <p className="field-help">
-            This one asks for an essay. Check the official page for the exact question, write it
-            here, then copy it into their form.
+            These are the questions from {s.organization}'s application, word for word. Answer
+            them here (everything saves as you type), then copy each answer into their form.
+            {needsEssay && " Got an essay saved already? Start from it."}
           </p>
-          <EssayEditor />
-        </li>
-      )}
+        )}
+        <QuestionList scholarship={s} />
+      </li>
 
       <li>
         <h2>Fill out the official application</h2>
         <p className="field-help">
-          {s.organization} takes applications on their own site. Paste your essay there and add anything else they ask for.
+          {s.organization} takes applications on their own site. Sign in there, paste in your
+          answers, and upload anything it asks for.
         </p>
         {s.application_url ? (
           <a className="primary-button apply-open" href={s.application_url} target="_blank" rel="noreferrer">

@@ -4777,3 +4777,96 @@ body {
 .card-apply-link {
   font-weight: 700;
 }
+
+/* Application questions on the Apply page */
+.q-list ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.q-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.q {
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--tint-rgb), 0.16);
+  background: #fff;
+}
+.q-text {
+  display: flex;
+  gap: 10px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.q-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  background: rgba(var(--tint-rgb), 0.1);
+}
+.q-from {
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.75;
+}
+.q textarea,
+.q-essay-pick {
+  width: 100%;
+  font: inherit;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--tint-rgb), 0.22);
+  background: #fff;
+}
+.q textarea {
+  resize: vertical;
+}
+.q-essay-pick {
+  margin-bottom: 8px;
+  min-height: 42px;
+}
+.q-yesno {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.q-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  margin: 0 0 8px;
+  opacity: 0.85;
+}
+.q-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.82rem;
+}
+.q-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}

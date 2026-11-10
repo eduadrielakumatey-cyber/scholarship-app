@@ -400,6 +400,21 @@ def essay_mismatch(claim, page_text: str) -> str | None:
     return None
 
 
+def page_questions(url: str, essay_required) -> list[dict]:
+    """The official application's questions, word for word (see
+    app/services/questions.py). [] if the page lists none or can't be read."""
+    from app.services import questions as Q
+
+    try:
+        resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT_SECONDS)
+    except requests.exceptions.RequestException:
+        return []
+    if resp.status_code != 200:
+        return []
+    html = resp.content.decode("utf-8", errors="replace")
+    return Q.build(html, _visible_text(html), essay_required)
+
+
 def verify_page_content(c: dict, page_text: str) -> list[str]:
     """Checks the candidate's claims against the official page's text."""
     problems: list[str] = []
@@ -591,6 +606,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         interests=normalize_interests(c.get("interests") or []),
         estimated_hours_to_apply=hours,
         essay_required=c["essay_required"],
+        questions=c.get("_questions") or [],
         estimated_applicant_pool=estimate_applicant_pool(amount, c.get("states")),
         num_awards=c.get("num_awards") or 1,
         source_name=batch_source,
@@ -698,6 +714,14 @@ def run(
             o.reasons = verify_page_content(c, text)
             if o.reasons:
                 continue
+
+            # Copy the application's questions so students can answer them
+            # in the app. An essay listing must have its essay question.
+            questions = page_questions(c["source_url"], c.get("essay_required"))
+            if c.get("essay_required") and not any(q["kind"] == "written" for q in questions):
+                o.reasons = ["essay_required is true but the essay question couldn't be found on the official page"]
+                continue
+            c["_questions"] = questions
 
             o.accepted = True
             accepted.append(o)

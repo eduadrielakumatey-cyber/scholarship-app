@@ -12,7 +12,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
-from app.models import Application, Essay, User
+from app.models import Answer, Application, Essay, User
 
 account_bp = Blueprint("account", __name__, url_prefix="/api/account")
 
@@ -51,6 +51,10 @@ def export_data():
             for interaction in user.interactions
         ],
         "essays": [e.to_dict() for e in Essay.query.filter_by(user_id=user.id)],
+        "answers": [
+            {"scholarship_id": a.scholarship_id, "question_key": a.question_key, "answer": a.body}
+            for a in Answer.query.filter_by(user_id=user.id)
+        ],
         "applications": [
             {**a.to_dict(), "scholarship_title": a.scholarship.title if a.scholarship else None}
             for a in Application.query.filter_by(user_id=user.id)

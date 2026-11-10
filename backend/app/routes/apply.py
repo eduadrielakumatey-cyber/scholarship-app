@@ -24,7 +24,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.extensions import db
-from app.models import Application, Essay, Interaction, Scholarship, User
+from app.models import Answer, Application, Essay, Interaction, Scholarship, User
 from app.services.hosted import validate_application
 from app.services.scoring import is_eligible
 from app.utils.validators import normalize_interests
@@ -157,6 +157,42 @@ def withdraw(scholarship_id):
     _mark(user, scholarship_id, "saved")
     db.session.commit()
     return "", 204
+
+
+# --- Answers to a scholarship's application questions -------------------------------
+
+MAX_ANSWER = 20_000
+
+
+@apply_bp.get("/scholarships/<int:scholarship_id>/answers")
+@jwt_required()
+def get_answers(scholarship_id):
+    user = _me()
+    rows = Answer.query.filter_by(user_id=user.id, scholarship_id=scholarship_id).all()
+    return jsonify({"answers": {a.question_key: a.body for a in rows}})
+
+
+@apply_bp.put("/scholarships/<int:scholarship_id>/answers/<key>")
+@jwt_required()
+def save_answer(scholarship_id, key):
+    user = _me()
+    scholarship = Scholarship.query.get_or_404(scholarship_id)
+    if key not in {q.get("key") for q in (scholarship.questions or [])}:
+        return jsonify({"error": "That question isn't on this scholarship"}), 404
+    body = str((request.get_json(silent=True) or {}).get("body") or "")
+    if len(body) > MAX_ANSWER:
+        return jsonify({"error": "That answer is too long"}), 400
+    answer = Answer.query.filter_by(user_id=user.id, scholarship_id=scholarship_id, question_key=key).first()
+    if answer is None:
+        answer = Answer(user_id=user.id, scholarship_id=scholarship_id, question_key=key)
+        db.session.add(answer)
+        # Starting to answer puts it on the Saved list as In Progress.
+        interaction = Interaction.query.filter_by(user_id=user.id, scholarship_id=scholarship_id).first()
+        if interaction is None or interaction.action != "save" or (interaction.app_status or "saved") in ("saved", "planning"):
+            _mark(user, scholarship_id, "in_progress")
+    answer.body = body
+    db.session.commit()
+    return jsonify({"key": key, "saved": True})
 
 
 # --- Outside scholarships ----------------------------------------------------------

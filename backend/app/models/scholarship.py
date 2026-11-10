@@ -141,6 +141,10 @@ class Scholarship(db.Model):
     sponsor_email = db.Column(db.String(255), nullable=True)
     review_token_hash = db.Column(db.String(64), nullable=True, unique=True)
 
+    # The official application's questions, word for word, so students can
+    # answer them in the app (see app/services/questions.py). [] = none.
+    questions = db.Column(db.JSON, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -199,4 +203,5 @@ class Scholarship(db.Model):
             "is_recurring_program": self.is_recurring_program,
             "hosted": bool(self.hosted),
             "essay_prompt": self.essay_prompt,
+            "questions": self.questions or [],
         }

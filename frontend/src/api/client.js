@@ -119,6 +119,10 @@ export const createEssay = (fields) => request("/api/essays", { method: "POST", 
 export const updateEssay = (id, fields) => request(`/api/essays/${id}`, { method: "PUT", body: fields });
 export const deleteEssay = (id) => request(`/api/essays/${id}`, { method: "DELETE" });
 // Outside scholarships: record that it was submitted on the provider's site.
+// Answers to a scholarship's own application questions (saved as you type).
+export const getAnswers = (id) => request(`/api/scholarships/${id}/answers`);
+export const saveAnswer = (id, key, body) =>
+  request(`/api/scholarships/${id}/answers/${key}`, { method: "PUT", body: { body } });
 export const markSubmitted = (id) => request(`/api/scholarships/${id}/submitted`, { method: "POST" });
 // Scholarships posted on ScholarMatch: apply right here.
 export const applyInApp = (id, fields) =>

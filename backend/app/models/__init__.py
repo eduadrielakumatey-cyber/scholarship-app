@@ -15,5 +15,6 @@ from app.models.interaction import Interaction
 from app.models.device_link import DeviceLink
 from app.models.essay import Essay
 from app.models.application import Application
+from app.models.answer import Answer
 
-__all__ = ["User", "Scholarship", "Interaction", "DeviceLink", "Essay", "Application"]
+__all__ = ["User", "Scholarship", "Interaction", "DeviceLink", "Essay", "Application", "Answer"]
