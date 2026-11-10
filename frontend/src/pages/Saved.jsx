@@ -278,17 +278,10 @@ function SavedCard({ item, onStatusChange, onRemove }) {
       </h3>
       <p className="saved-card__org">{item.organization}</p>
 
-      {/* Apply link */}
-      {item.source_url && (
-        <a
-          href={item.source_url}
-          target="_blank"
-          rel="noreferrer"
-          className="card-more-info-link"
-        >
-          Apply on the official site
-        </a>
-      )}
+      {/* Apply: in the app for ScholarMatch-posted ones, guided for the rest */}
+      <Link to={`/apply/${item.id}`} className="card-more-info-link card-apply-link">
+        {item.app_status === "submitted" ? "View application" : item.hosted ? "Apply in ScholarMatch" : "Apply"} →
+      </Link>
 
       {/* Metrics -- only present when still eligible (see app/services/matching.py) */}
       {item.eligible && item.competitiveness && item.application_value && (

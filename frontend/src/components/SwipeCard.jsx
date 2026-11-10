@@ -114,6 +114,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
     tags.push(scholarship.majors[0]);
   }
   // Only shown when the provider's own page said so (null = unknown).
+  if (scholarship.hosted) tags.push("Apply in app");
   if (scholarship.essay_required === false) tags.push("No essay");
   if (scholarship.essay_required === true) tags.push("Essay required");
   if (scholarship.estimated_hours_to_apply) {
@@ -170,7 +171,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
           {tags.map((tag, i) => (
             <span
               key={i}
-              className={`card-tag${tag === "No essay" || tag.endsWith(" only") ? " card-tag--easy" : ""}`}
+              className={`card-tag${tag === "No essay" || tag === "Apply in app" || tag.endsWith(" only") ? " card-tag--easy" : ""}`}
             >
               {tag}
             </span>

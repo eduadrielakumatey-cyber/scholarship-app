@@ -21,7 +21,7 @@ class BaseConfig:
     # Bump whenever the Terms of Service or Privacy Policy materially change
     # (keep in sync with LEGAL_VERSION in frontend/src/legal/siteInfo.js).
     # Stored on each user at signup as a record of what they agreed to.
-    TERMS_VERSION = "2026-11-08"
+    TERMS_VERSION = "2026-11-09"
 
     # 🔥 FIX: NO FALLBACK DATABASE (prevents fake scholar_user issue)
     # Some hosts (Railway, Heroku) hand out DATABASE_URL with the old
@@ -37,6 +37,9 @@ class BaseConfig:
     # Neon closes idle connections; test each pooled connection before use
     # and replace ones older than 4 minutes instead of failing a request.
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 240}
+
+    # Unlocks /admin (approving sponsor-posted scholarships). Unset = admin off.
+    ADMIN_KEY = os.environ.get("ADMIN_KEY") or None
 
     CORS_ORIGINS = os.environ.get(
         "CORS_ORIGINS",

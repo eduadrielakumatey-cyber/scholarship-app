@@ -17,6 +17,11 @@ import Detail from "./pages/Detail.jsx";
 import Stats from "./pages/Stats.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
 import LinkDevice from "./pages/LinkDevice.jsx";
+import Apply from "./pages/Apply.jsx";
+import Essays from "./pages/Essays.jsx";
+import Sponsor from "./pages/Sponsor.jsx";
+import SponsorReview from "./pages/SponsorReview.jsx";
+import Admin from "./pages/Admin.jsx";
 import { Privacy, Terms, Cookies, Licenses } from "./pages/Legal.jsx";
 import StorageNotice from "./components/StorageNotice.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
@@ -67,6 +72,10 @@ function AppRoutes() {
       <Route path="/start" element={<Start />} />
       <Route path="/login" element={<LoginRoute />} />
       <Route path="/link" element={<LinkDevice />} />
+      {/* Sponsors post scholarships and review applications without a profile. */}
+      <Route path="/sponsor" element={<Sponsor />} />
+      <Route path="/review/:token" element={<SponsorReview />} />
+      <Route path="/admin" element={<Admin />} />
       {/* Policies are public: people must be able to read them before signing up. */}
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
@@ -94,6 +103,22 @@ function AppRoutes() {
         element={
           <RequireAuth>
             <Detail />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/apply/:id"
+        element={
+          <RequireAuth>
+            <Apply />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/essays"
+        element={
+          <RequireAuth>
+            <Essays />
           </RequireAuth>
         }
       />

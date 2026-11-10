@@ -118,7 +118,7 @@ def check_url(url: str) -> tuple[str, str]:
 def run(limit: int | None = None, only_stale_days: int | None = None) -> dict:
     app = create_app("development")
     with app.app_context():
-        query = Scholarship.query.order_by(Scholarship.id)
+        query = Scholarship.query.filter(Scholarship.hosted.isnot(True)).order_by(Scholarship.id)
         if only_stale_days is not None:
             cutoff = datetime.utcnow() - timedelta(days=only_stale_days)
             query = query.filter(

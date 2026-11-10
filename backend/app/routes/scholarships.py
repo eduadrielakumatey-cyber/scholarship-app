@@ -14,6 +14,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models import User, Scholarship, Interaction
 from app.services.matching import get_swipe_deck_with_summary, score_single
+from app.services.scoring import is_eligible
 from app.utils.validators import normalize_interests
 
 scholarships_bp = Blueprint("scholarships", __name__, url_prefix="/api/scholarships")
@@ -40,7 +41,14 @@ def deck():
 def detail(scholarship_id):
     user = User.query.get_or_404(get_jwt_identity())
     scholarship = Scholarship.query.get_or_404(scholarship_id)
-    return jsonify(score_single(user, scholarship))
+    payload = score_single(user, scholarship)
+    # The Apply page shows why a student doesn't qualify and whether they
+    # already marked it submitted.
+    eligible, reasons = is_eligible(user, scholarship)
+    payload["ineligible_reasons"] = [] if eligible else reasons
+    interaction = Interaction.query.filter_by(user_id=user.id, scholarship_id=scholarship_id).first()
+    payload["app_status"] = (interaction.app_status or "saved") if interaction and interaction.action == "save" else None
+    return jsonify(payload)
 
 
 @scholarships_bp.post("/<int:scholarship_id>/swipe")

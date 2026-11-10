@@ -37,12 +37,10 @@ export default function Detail() {
 
       <p style={{ lineHeight: 1.6 }}>{scholarship.description}</p>
 
-      {scholarship.source_url && (
-        <a className="primary-button" style={{ display: "block", textAlign: "center", marginTop: 20 }}
-           href={scholarship.source_url} target="_blank" rel="noreferrer">
-          Apply on official site
-        </a>
-      )}
+      <Link className="primary-button" style={{ display: "block", textAlign: "center", marginTop: 20 }}
+            to={`/apply/${scholarship.id}`}>
+        {scholarship.hosted ? "Apply in ScholarMatch" : "Apply"}
+      </Link>
     </div>
   );
 }

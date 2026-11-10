@@ -18,6 +18,7 @@ import {
   Lightbulb,
   LogOut,
   Menu,
+  PenLine,
   PlayCircle,
   X,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import { TOUR_DONE_KEY } from "./guide/GuideTour.jsx";
 const NAV_ITEMS = [
   { to: "/", label: "Discover", Icon: Compass, end: true },
   { to: "/saved", label: "Saved", Icon: Bookmark },
+  { to: "/essays", label: "Essays", Icon: PenLine },
   { to: "/stats", label: "Stats", Icon: BarChart3 },
   { to: "/profile", label: "Profile", Icon: GraduationCap },
   { to: "/how-it-works", label: "How it works", Icon: Lightbulb },

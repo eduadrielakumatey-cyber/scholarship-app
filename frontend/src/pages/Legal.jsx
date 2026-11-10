@@ -66,6 +66,17 @@ export function Privacy() {
           application status you set on saved ones.
         </li>
         <li>
+          <strong>Essays:</strong> anything you write in your essay library, so you can reuse it.
+        </li>
+        <li>
+          <strong>In-app applications:</strong> if you apply to a scholarship posted on{" "}
+          {SITE.appName}, the name, email, school and essay you enter in that application.
+        </li>
+        <li>
+          <strong>Sponsors:</strong> people who post a scholarship give us their name and email
+          so we can contact them about it.
+        </li>
+        <li>
           <strong>Consent records:</strong> when you agreed to these policies and when you opted
           in to demographics.
         </li>
@@ -74,7 +85,11 @@ export function Privacy() {
           and request details for security and reliability.
         </li>
       </ul>
-      <p>We don't ask for your name, address, phone number, birth date or school.</p>
+      <p>
+        To use {SITE.appName} we don't ask for your name, address, phone number, birth date or
+        school. The only time you give a name and email is when you choose to apply to a
+        scholarship posted on {SITE.appName}, because the sponsor needs a way to reach a winner.
+      </p>
 
       <h2>How we use it</h2>
       <p>
@@ -86,9 +101,12 @@ export function Privacy() {
 
       <h2>Who we share it with</h2>
       <p>
-        Only service providers that host the app and its database on our behalf (currently
-        Vercel for the website and Railway for the server and database), under contracts that
-        limit their use of it. We may also disclose information if the law requires it. If{" "}
+        Service providers that host the app and its database on our behalf (currently Vercel
+        for the website, Render for the server and Neon for the database), under contracts that
+        limit their use of it. When you apply to a scholarship posted on {SITE.appName}, we share
+        that application (your name, email, school and essay) with that scholarship's sponsor,
+        and only after you tick the box agreeing to it. Sponsors agree to use it only to choose
+        and contact winners. We may also disclose information if the law requires it. If{" "}
         {SITE.appName} is ever sold or merged, we'll notify you before your information becomes
         subject to a different policy.
       </p>
@@ -196,6 +214,12 @@ export function Terms() {
           from your profile and the listing. They are not predictions or guarantees of winning.
         </li>
         <li>
+          Some scholarships are posted directly on {SITE.appName} by sponsors such as local
+          businesses, clubs and families, and you apply to them in the app. The sponsor, not{" "}
+          {SITE.appName}, chooses the winners and pays the awards. We review these listings before
+          they go live, but we can't guarantee that a sponsor will pay.
+        </li>
+        <li>
           Legitimate scholarships don't charge you to apply. If a listing asks for payment,
           don't pay, and tell us at {contactLink}.
         </li>
@@ -206,6 +230,15 @@ export function Terms() {
         Your profile lives on the device you started it on, and on any device you open it on
         with a one-time code, so anyone using those browsers can see it. Keep codes to yourself. Give accurate profile information. You can delete your profile at any time from
         the Profile page. We may suspend profiles that break these terms.
+      </p>
+
+      <h2>Sponsors</h2>
+      <p>
+        If you post a scholarship, you agree to: describe it accurately; pay every winner (or
+        their school) what you promised; never charge students to apply; and use applicants'
+        information only to choose and contact winners, never for marketing, and delete it when
+        you're done. We may decline or remove any listing. {SITE.appName} doesn't handle award
+        money and isn't responsible for choosing winners.
       </p>
 
       <h2>Acceptable use</h2>

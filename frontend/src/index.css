@@ -4564,3 +4564,216 @@ body {
   background: var(--ink);
   color: #fffaf2;
 }
+
+/* ============================================================
+   Applying: Apply page, essay editor, sponsor pages
+   ============================================================ */
+.field-group textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.55;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--tint-rgb), 0.22);
+  background: #fff;
+  color: var(--ink, #23202b);
+  resize: vertical;
+}
+.field-group textarea:focus {
+  outline: 2px solid var(--accent, #b4441b);
+  outline-offset: 1px;
+}
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 14px;
+}
+.field-row > .field-group {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.essay-editor__prompt {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--accent, #b4441b);
+  border-radius: 8px;
+  background: rgba(var(--tint-rgb), 0.05);
+  line-height: 1.5;
+}
+.essay-editor__prompt span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  opacity: 0.75;
+}
+.essay-editor__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.essay-editor__bar select {
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--tint-rgb), 0.22);
+  background: #fff;
+  font: inherit;
+}
+.essay-editor__bar .secondary-button,
+.essay-editor__footer .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.essay-editor__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+  margin-top: -4px;
+}
+
+.apply-steps {
+  list-style: none;
+  counter-reset: step;
+  padding: 0;
+  margin: 8px 0 0;
+}
+.apply-steps > li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 26px 44px;
+}
+.apply-steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  background: var(--ink, #23202b);
+  color: #fffaf2;
+}
+.apply-steps h2 {
+  font-size: 1.1rem;
+  margin: 0 0 8px;
+}
+.apply-reqs {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+.apply-desc {
+  line-height: 1.6;
+  margin: 0;
+}
+.apply-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.apply-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #0f7a6d;
+}
+.apply-warning {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(176, 21, 79, 0.08);
+  color: #8f1240;
+  font-size: 0.9rem;
+}
+.apply-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--color-teal) 14%, transparent);
+  color: #06695c;
+}
+.apply-form .primary-button {
+  width: 100%;
+  margin-top: 12px;
+}
+.apply-done {
+  margin-top: 12px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(var(--tint-rgb), 0.05);
+  text-align: center;
+  line-height: 1.55;
+}
+.apply-done h2 {
+  margin: 8px 0;
+}
+.apply-done--won {
+  background: color-mix(in srgb, var(--color-teal) 14%, transparent);
+}
+
+.sponsor-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+}
+.sponsor-link code {
+  flex: 1 1 260px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(var(--tint-rgb), 0.07);
+  font-size: 0.85rem;
+}
+.review-card {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--tint-rgb), 0.16);
+  background: #fff;
+  margin-bottom: 12px;
+}
+.review-card--winner {
+  border-color: #0f7a6d;
+}
+.review-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.review-card__status {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.review-card__meta {
+  font-size: 0.85rem;
+  margin: 4px 0 8px;
+  overflow-wrap: anywhere;
+}
+.review-card__essay {
+  white-space: pre-wrap;
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+.card-apply-link {
+  font-weight: 700;
+}

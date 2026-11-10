@@ -418,6 +418,14 @@ const FAQ = [
     a: "Yes, and there's no sign-up: no email or password. Building your deck and tracking deadlines are free.",
   },
   {
+    q: "Can I apply through the app?",
+    a: "Yes. Scholarships posted on ScholarMatch by local sponsors are applied to right in the app. For everything else, the Apply screen walks you through it: what you need, your essay (written and saved in the app so you can reuse it), the official form, and tracking it as submitted.",
+  },
+  {
+    q: "I want to offer a scholarship. How?",
+    a: "Local businesses, clubs and families can post one for free at /sponsor. Students apply in the app and you pick the winner from a private page. You pay the winner directly.",
+  },
+  {
     q: "Is it only for Maryland?",
     a: "Right now ScholarMatch is built for Maryland students. We search Maryland's local clubs, colleges, county funds and state grants every day, plus national awards anyone can win. Students in other states can still use it, but they'll mostly see national awards for now.",
   },

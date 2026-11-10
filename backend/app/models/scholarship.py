@@ -131,6 +131,16 @@ class Scholarship(db.Model):
     # alone as a one-time award that has simply run its course.
     is_recurring_program = db.Column(db.Boolean, nullable=True)
 
+    # --- Posted on ScholarMatch by a sponsor (applied to inside the app) ---
+    # hosted rows have no outside source_url; students apply in the app and
+    # the sponsor reviews applications through a private link. Sponsor
+    # contact details and the review-link hash are never sent to students.
+    hosted = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    essay_prompt = db.Column(db.Text, nullable=True)
+    sponsor_name = db.Column(db.String(160), nullable=True)
+    sponsor_email = db.Column(db.String(255), nullable=True)
+    review_token_hash = db.Column(db.String(64), nullable=True, unique=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -187,4 +197,6 @@ class Scholarship(db.Model):
             "status": self.status,
             "last_verified_at": self.last_verified_at.isoformat() if self.last_verified_at else None,
             "is_recurring_program": self.is_recurring_program,
+            "hosted": bool(self.hosted),
+            "essay_prompt": self.essay_prompt,
         }
