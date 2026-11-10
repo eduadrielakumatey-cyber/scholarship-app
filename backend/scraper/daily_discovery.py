@@ -612,6 +612,13 @@ def run(
         index = ExistingIndex()
         for s in Scholarship.query.with_entities(Scholarship.title, Scholarship.organization, Scholarship.source_url):
             index.add(s.title, s.organization, s.source_url)
+        # Checking every page can take many minutes, and hosted Postgres
+        # (Neon) drops connections that sit idle that long. End the read
+        # transaction and drop pooled connections now, so the insert at the
+        # end starts on a fresh one.
+        db.session.rollback()
+        db.session.close()
+        db.engine.dispose()
 
         accepted: list[Outcome] = []
         for raw in candidates:

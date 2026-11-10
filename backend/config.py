@@ -34,6 +34,9 @@ class BaseConfig:
     SQLALCHEMY_DATABASE_URI = _database_url
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Neon closes idle connections; test each pooled connection before use
+    # and replace ones older than 4 minutes instead of failing a request.
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 240}
 
     CORS_ORIGINS = os.environ.get(
         "CORS_ORIGINS",
