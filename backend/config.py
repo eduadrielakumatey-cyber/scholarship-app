@@ -21,7 +21,7 @@ class BaseConfig:
     # Bump whenever the Terms of Service or Privacy Policy materially change
     # (keep in sync with LEGAL_VERSION in frontend/src/legal/siteInfo.js).
     # Stored on each user at signup as a record of what they agreed to.
-    TERMS_VERSION = "2026-11-09"
+    TERMS_VERSION = "2026-11-10"
 
     # 🔥 FIX: NO FALLBACK DATABASE (prevents fake scholar_user issue)
     # Some hosts (Railway, Heroku) hand out DATABASE_URL with the old
@@ -41,6 +41,13 @@ class BaseConfig:
     # Launch market: only scholarships open to this state's students are
     # shown, and new profiles must be from it. Set FOCUS_STATE="" to go national.
     FOCUS_STATE = os.environ.get("FOCUS_STATE", "MD").strip().upper() or None
+
+    # Essay Coach (AI feedback). Off unless an Anthropic API key is set.
+    # COACH_MODEL defaults to Claude Opus 5.5; COACH_DAILY_LIMIT caps requests
+    # per student per 24 hours, which caps cost.
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY") or None
+    COACH_MODEL = os.environ.get("COACH_MODEL", "claude-opus-5-5")
+    COACH_DAILY_LIMIT = int(os.environ.get("COACH_DAILY_LIMIT", "5"))
 
     # Unlocks /admin (approving sponsor-posted scholarships). Unset = admin off.
     ADMIN_KEY = os.environ.get("ADMIN_KEY") or None

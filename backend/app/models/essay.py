@@ -25,7 +25,9 @@ class Essay(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self) -> dict:
-        words = len(self.body.split()) if self.body else 0
+        from app.services.coach import plain_text  # bodies are editor HTML
+
+        words = len(plain_text(self.body).split()) if self.body else 0
         return {
             "id": self.id,
             "title": self.title,

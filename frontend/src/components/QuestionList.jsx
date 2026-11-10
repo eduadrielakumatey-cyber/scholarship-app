@@ -1,43 +1,52 @@
 // src/components/QuestionList.jsx
 //
 // Every question on a scholarship's official application, word for word,
-// with a place to answer each one. Answers save as you type (to the
-// student's profile), each has a Copy button for pasting into the official
-// form, and "Copy all" grabs everything at once. Essay questions can start
-// from an essay already in the student's library.
+// with a place to answer each one. Written questions get the full editor
+// (formatting, counts, find & replace, focus mode) plus writing checks and
+// AI feedback; yes/no, short and reference questions get simple inputs.
+// Answers save as you type, each has a Copy button for pasting into the
+// official form, and "Copy all answers" grabs everything at once. Essay
+// questions can start from an essay already in the student's library.
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, FileUp, UserRound } from "lucide-react";
 import * as api from "../api/client.js";
-import { wordCount } from "./EssayEditor.jsx";
+import RichEditor from "./RichEditor.jsx";
+import WritingCoach from "./WritingCoach.jsx";
+import { copyRich, htmlToText } from "../lib/text.js";
 
 const SAVE_DELAY_MS = 700;
 
-function CopyButton({ text, label = "Copy" }) {
+function CopyButton({ value, label = "Copy", rich = false }) {
   const [done, setDone] = useState(false);
+  const plain = rich ? htmlToText(value) : (value || "").trim();
+  async function copy() {
+    try {
+      if (rich) await copyRich(value);
+      else await navigator.clipboard.writeText(plain);
+      setDone(true);
+      setTimeout(() => setDone(false), 1800);
+    } catch {
+      // clipboard blocked: nothing to do
+    }
+  }
   return (
-    <button
-      type="button"
-      className="secondary-button q-copy"
-      disabled={!text}
-      onClick={() =>
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            setDone(true);
-            setTimeout(() => setDone(false), 1800);
-          })
-          .catch(() => {})
-      }
-    >
+    <button type="button" className="secondary-button q-copy" disabled={!plain} onClick={copy}>
       {done ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />} {done ? "Copied" : label}
     </button>
   );
 }
 
-function Question({ q, index, value, essays, onChange, status }) {
+function SaveStatus({ status }) {
+  return (
+    <span className="q-save">
+      {status === "saving" ? "Saving..." : status === "saved" ? "Saved" : status === "error" ? "Not saved, try again" : ""}
+    </span>
+  );
+}
+
+function Question({ q, index, value, essays, onChange, status, scholarshipId }) {
   const id = `q-${q.key}`;
-  const words = wordCount(value);
   // A yes/no answer is stored as "Yes" or "No", plus any details on the
   // following lines ("Yes\nI'll graduate from Fort Hill in June").
   const lines = (value || "").split("\n");
@@ -67,32 +76,16 @@ function Question({ q, index, value, essays, onChange, status }) {
         </p>
       )}
 
-      {q.kind === "yesno" && (
-        <div className="q-yesno" role="group" aria-label="Your answer">
-          {["Yes", "No"].map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              className="chip"
-              aria-pressed={ynValue === opt}
-              onClick={() => onChange(yesNo(opt, followText))}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {q.kind !== "upload" && (q.kind !== "yesno" || q.follow_up) && (
+      {q.kind === "written" && (
         <>
-          {q.kind === "written" && essays.length > 0 && (
+          {essays.length > 0 && (
             <select
               className="q-essay-pick"
               aria-label="Start from a saved essay"
               value=""
               onChange={(e) => {
                 const essay = essays.find((x) => String(x.id) === e.target.value);
-                if (essay && (!value || window.confirm("Replace what you've written with this saved essay?"))) {
+                if (essay && (!htmlToText(value) || window.confirm("Replace what you've written with this saved essay?"))) {
                   onChange(essay.body);
                 }
               }}
@@ -105,40 +98,49 @@ function Question({ q, index, value, essays, onChange, status }) {
               ))}
             </select>
           )}
-          <textarea
-            id={id}
-            rows={q.kind === "written" ? 8 : 2}
-            placeholder={
-              q.kind === "yesno"
-                ? "If yes, add the details here"
-                : q.kind === "reference"
-                ? "Name, email or phone"
-                : q.kind === "written"
-                ? "Write your answer here. It saves as you type."
-                : "Your answer"
-            }
-            value={q.kind === "yesno" ? followText : value || ""}
-            onChange={(e) =>
-              onChange(q.kind === "yesno" ? (ynValue ? yesNo(ynValue, e.target.value) : `\n${e.target.value}`) : e.target.value)
-            }
+          <RichEditor
+            value={value}
+            onChange={onChange}
+            wordLimit={q.word_limit}
+            label={q.text}
+            placeholder="Write your answer here. It saves as you type."
           />
+          <div className="q-foot">
+            <SaveStatus status={status} />
+            <CopyButton value={value} rich />
+          </div>
+          <WritingCoach html={value} question={q.text} wordLimit={q.word_limit} scholarshipId={scholarshipId} />
         </>
       )}
 
-      {q.kind !== "upload" && (
+      {q.kind === "yesno" && (
+        <div className="q-yesno" role="group" aria-label="Your answer">
+          {["Yes", "No"].map((opt) => (
+            <button key={opt} type="button" className="chip" aria-pressed={ynValue === opt}
+              onClick={() => onChange(yesNo(opt, followText))}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(q.kind === "short" || q.kind === "reference" || (q.kind === "yesno" && q.follow_up)) && (
+        <textarea
+          id={id}
+          rows={2}
+          placeholder={q.kind === "yesno" ? "If yes, add the details here" : q.kind === "reference" ? "Name, email or phone" : "Your answer"}
+          spellCheck
+          value={q.kind === "yesno" ? followText : value || ""}
+          onChange={(e) =>
+            onChange(q.kind === "yesno" ? (ynValue ? yesNo(ynValue, e.target.value) : `\n${e.target.value}`) : e.target.value)
+          }
+        />
+      )}
+
+      {q.kind !== "upload" && q.kind !== "written" && (
         <div className="q-foot">
-          <span>
-            {q.kind === "written" && (
-              <>
-                {words} {words === 1 ? "word" : "words"}
-                {q.word_limit ? ` of ${q.word_limit}` : ""}
-                {q.word_limit && words > q.word_limit ? " (over the limit)" : ""}
-                {" · "}
-              </>
-            )}
-            {status === "saving" ? "Saving..." : status === "saved" ? "Saved" : status === "error" ? "Not saved, try again" : ""}
-          </span>
-          <CopyButton text={(value || "").trim()} />
+          <SaveStatus status={status} />
+          <CopyButton value={value} />
         </div>
       )}
     </li>
@@ -187,10 +189,10 @@ export default function QuestionList({ scholarship }) {
     );
   }
 
-  const answered = questions.filter((q) => q.kind === "upload" || (answers[q.key] || "").trim()).length;
+  const answered = questions.filter((q) => q.kind === "upload" || htmlToText(answers[q.key]).trim()).length;
   const allText = questions
     .filter((q) => q.kind !== "upload")
-    .map((q, i) => `${i + 1}. ${q.text}\n${(answers[q.key] || "").trim() || "(no answer yet)"}`)
+    .map((q, i) => `${i + 1}. ${q.text}\n${htmlToText(answers[q.key]).trim() || "(no answer yet)"}`)
     .join("\n\n");
 
   return (
@@ -199,7 +201,7 @@ export default function QuestionList({ scholarship }) {
         <span>
           {answered} of {questions.length} ready
         </span>
-        <CopyButton text={allText} label="Copy all answers" />
+        <CopyButton value={allText} label="Copy all answers" />
       </div>
       <ol>
         {questions.map((q, i) => (
@@ -210,6 +212,7 @@ export default function QuestionList({ scholarship }) {
             value={answers[q.key] || ""}
             essays={essays}
             status={status[q.key]}
+            scholarshipId={scholarship.id}
             onChange={(body) => change(q.key, body)}
           />
         ))}

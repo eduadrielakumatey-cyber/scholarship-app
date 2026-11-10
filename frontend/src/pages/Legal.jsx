@@ -66,7 +66,10 @@ export function Privacy() {
           application status you set on saved ones.
         </li>
         <li>
-          <strong>Essays:</strong> anything you write in your essay library, so you can reuse it.
+          <strong>Essays and answers:</strong> anything you write in your essay library or in
+          answer to a scholarship's questions, so you can come back to it and reuse it. We also
+          count how many times you use AI feedback each day (not what it said) to enforce the
+          daily limit.
         </li>
 
         <li>
@@ -92,7 +95,12 @@ export function Privacy() {
       <p>
         Service providers that host the app and its database on our behalf (currently Vercel
         for the website, Render for the server and Neon for the database), under contracts that
-        limit their use of it. We may also disclose information if the law requires it. If{" "}
+        limit their use of it. When you tap "Get AI feedback," that essay's text and the question
+        it answers (never your name or profile) are sent to Anthropic, the company that makes
+        the Claude AI, to write the feedback. Anthropic processes it under its commercial terms,
+        which don't allow it to use your essay to train its AI models. Writing tips that aren't AI
+        run on your own device and send nothing. We may also disclose information if the law
+        requires it. If{" "}
         {SITE.appName} is ever sold or merged, we'll notify you before your information becomes
         subject to a different policy.
       </p>
@@ -194,6 +202,11 @@ export function Terms() {
         <li>
           Deadlines, amounts and eligibility can change or be wrong. Always confirm details on
           the provider's official site before applying.
+        </li>
+        <li>
+          AI feedback on essays is advice from an automated tool and can be wrong. It points out
+          what to improve but doesn't write for you, and what you submit should be your own work.
+          Some scholarships have their own rules about AI tools, so check before you apply.
         </li>
         <li>
           Match scores, competitiveness levels and value estimates are rough guides computed

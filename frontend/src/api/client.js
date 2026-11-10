@@ -123,6 +123,9 @@ export const deleteEssay = (id) => request(`/api/essays/${id}`, { method: "DELET
 export const getAnswers = (id) => request(`/api/scholarships/${id}/answers`);
 export const saveAnswer = (id, key, body) =>
   request(`/api/scholarships/${id}/answers/${key}`, { method: "PUT", body: { body } });
+// Essay Coach: AI feedback on an essay (limited per day; off until enabled).
+export const coachStatus = () => request("/api/coach/status");
+export const coachFeedback = (fields) => request("/api/coach/feedback", { method: "POST", body: fields });
 export const markSubmitted = (id) => request(`/api/scholarships/${id}/submitted`, { method: "POST" });
 // Scholarships posted on ScholarMatch: apply right here.
 export const applyInApp = (id, fields) =>

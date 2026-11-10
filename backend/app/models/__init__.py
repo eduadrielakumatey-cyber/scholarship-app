@@ -16,5 +16,6 @@ from app.models.device_link import DeviceLink
 from app.models.essay import Essay
 from app.models.application import Application
 from app.models.answer import Answer
+from app.models.coach_use import CoachUse
 
-__all__ = ["User", "Scholarship", "Interaction", "DeviceLink", "Essay", "Application", "Answer"]
+__all__ = ["User", "Scholarship", "Interaction", "DeviceLink", "Essay", "Application", "Answer", "CoachUse"]

@@ -8,11 +8,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import * as api from "../api/client.js";
+import RichEditor from "./RichEditor.jsx";
+import WritingCoach from "./WritingCoach.jsx";
+import { copyRich, countWords, htmlToText } from "../lib/text.js";
 
 const SAVE_DELAY_MS = 800;
 
+// Essay bodies are editor HTML; counts use the plain text.
 export function wordCount(text) {
-  return (text || "").trim() ? text.trim().split(/\s+/).length : 0;
+  return countWords(htmlToText(text));
 }
 
 export default function EssayEditor({ prompt, onTextChange, allowDelete = false, autoFocus = false }) {
@@ -121,7 +125,7 @@ export default function EssayEditor({ prompt, onTextChange, allowDelete = false,
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(body);
+      await copyRich(body);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -179,32 +183,28 @@ export default function EssayEditor({ prompt, onTextChange, allowDelete = false,
         />
       </div>
 
-      <div className="field-group">
-        <label htmlFor="essay-body">Your essay</label>
-        <textarea
-          id="essay-body"
-          rows={12}
-          autoFocus={autoFocus}
-          placeholder="Write here. It saves as you type, and you can reuse it for other scholarships."
-          value={body}
-          onChange={(e) => {
-            setBody(e.target.value);
-            scheduleSave(title, e.target.value);
-          }}
-        />
-      </div>
+      <RichEditor
+        value={body}
+        label="Your essay"
+        minHeight={280}
+        placeholder="Write here. It saves as you type, and you can reuse it for other scholarships."
+        onChange={(html) => {
+          setBody(html);
+          scheduleSave(title, html);
+        }}
+      />
 
       <div className="essay-editor__footer">
         <span>
-          {words} {words === 1 ? "word" : "words"}
-          {" · "}
-          {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : saveState === "error" ? "Not saved" : body ? "Saved" : ""}
+          {words > 0 && (saveState === "saving" ? "Saving..." : saveState === "error" ? "Not saved" : "Saved")}
         </span>
         <button type="button" className="secondary-button" onClick={copy} disabled={!body}>
           {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}{" "}
           {copied ? "Copied" : "Copy essay"}
         </button>
       </div>
+
+      <WritingCoach html={body} question={prompt} />
 
       {error && (
         <p className="error-text" role="alert">

@@ -6,6 +6,7 @@
 // of hitting a broken page. There's no sign-up: /start makes a profile
 // tied to this device; /link opens it on another device with a one-time code. /login stays only for older email accounts.
 
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import Login from "./pages/Login.jsx";
@@ -17,12 +18,19 @@ import Detail from "./pages/Detail.jsx";
 import Stats from "./pages/Stats.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
 import LinkDevice from "./pages/LinkDevice.jsx";
-import Apply from "./pages/Apply.jsx";
-import Essays from "./pages/Essays.jsx";
 import { Privacy, Terms, Cookies, Licenses } from "./pages/Legal.jsx";
 import StorageNotice from "./components/StorageNotice.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import AppLayout from "./components/AppLayout.jsx";
+
+// The writing pages carry the rich-text editor, so they load only when opened.
+const Apply = lazy(() => import("./pages/Apply.jsx"));
+const Essays = lazy(() => import("./pages/Essays.jsx"));
+const lazyPage = (Page) => (
+  <Suspense fallback={<div className="screen"><p className="page-subtitle">Loading...</p></div>}>
+    <Page />
+  </Suspense>
+);
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -102,17 +110,13 @@ function AppRoutes() {
       <Route
         path="/apply/:id"
         element={
-          <RequireAuth>
-            <Apply />
-          </RequireAuth>
+          <RequireAuth>{lazyPage(Apply)}</RequireAuth>
         }
       />
       <Route
         path="/essays"
         element={
-          <RequireAuth>
-            <Essays />
-          </RequireAuth>
+          <RequireAuth>{lazyPage(Essays)}</RequireAuth>
         }
       />
       <Route

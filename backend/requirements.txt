@@ -13,3 +13,4 @@ beautifulsoup4==4.12.3
 marshmallow==3.21.3
 gunicorn==22.0.0
 pytest==8.2.2
+anthropic==2.7.0
