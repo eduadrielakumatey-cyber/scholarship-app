@@ -287,6 +287,9 @@ def validate_fields(c: dict, today: date) -> list[str]:
     if len((c.get("evidence") or "").strip()) < 15:
         problems.append("evidence quote missing (need a verbatim line from the official page)")
 
+    if not isinstance(c.get("essay_required"), bool):
+        problems.append("essay_required must be true or false, decided from the official page")
+
     return problems
 
 
@@ -366,6 +369,37 @@ def fee_red_flag(page_lower: str) -> str | None:
     return None
 
 
+# What counts as "an essay": any written response the student has to compose
+# (an essay, personal statement, or a describe/explain/tell-us question).
+# A one-word or yes/no question, an upload, or a reference is not one.
+ESSAY_WORDS = re.compile(
+    r"(?<!no )\bessays?\b|personal statement|statement of (purpose|need|goals|intent|career|financial)|"
+    r"letter (explaining|describing|stating|detailing)|short answers?|written (response|statement)|"
+    r"\b\d{2,4}\s*(-|to)?\s*\d{0,4}\s*words?\b|words or (less|fewer)",
+    re.IGNORECASE,
+)
+WRITING_PROMPT = re.compile(
+    r"\b(describe|explain|discuss|tell us|why do you|why are you|how will|how has|how have|"
+    r"what are your|what have you|in your own words)\b",
+    re.IGNORECASE,
+)
+NO_ESSAY = re.compile(r"no essays? (is |are )?(required|needed)|does not require an essay|without an essay", re.IGNORECASE)
+
+
+def essay_mismatch(claim, page_text: str) -> str | None:
+    """The problem, if the essay answer contradicts the official page.
+    Students rely on the No essay / Essay required tag, so it has to be
+    something the page itself supports, never a guess."""
+    page = re.sub(r"\s+", " ", page_text or "")
+    says_none = bool(NO_ESSAY.search(page))
+    asks = bool(ESSAY_WORDS.search(page)) or bool(WRITING_PROMPT.search(page))
+    if claim is True and (says_none or not asks):
+        return "essay_required is true but the official page doesn't ask for an essay or written answer"
+    if claim is False and ESSAY_WORDS.search(page) and not says_none:
+        return "essay_required is false but the official page mentions an essay"
+    return None
+
+
 def verify_page_content(c: dict, page_text: str) -> list[str]:
     """Checks the candidate's claims against the official page's text."""
     problems: list[str] = []
@@ -387,6 +421,10 @@ def verify_page_content(c: dict, page_text: str) -> list[str]:
     evidence = normalize_text(c.get("evidence"))
     if evidence and evidence not in page:
         problems.append("evidence quote not found verbatim on the official page")
+
+    essay_problem = essay_mismatch(c.get("essay_required"), page_text)
+    if essay_problem:
+        problems.append(essay_problem)
 
     flagged = fee_red_flag(re.sub(r"\s+", " ", page_text.lower()))
     if flagged:
@@ -552,6 +590,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         majors=[m.strip().lower() for m in (c.get("majors") or []) if m and m.strip()],
         interests=normalize_interests(c.get("interests") or []),
         estimated_hours_to_apply=hours,
+        essay_required=c["essay_required"],
         estimated_applicant_pool=estimate_applicant_pool(amount, c.get("states")),
         num_awards=c.get("num_awards") or 1,
         source_name=batch_source,
@@ -627,6 +666,9 @@ def run(
             c = o.candidate
 
             o.reasons = validate_fields(c, today)
+            focus = app.config.get("FOCUS_STATE")
+            if focus and focus not in [str(x).upper() for x in (c.get("states") or [])]:
+                o.reasons.append(f"not limited to {focus} students; the app only shows {focus} scholarships right now")
             if o.reasons:
                 continue
 

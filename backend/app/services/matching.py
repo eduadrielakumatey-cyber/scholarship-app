@@ -59,6 +59,9 @@ def _active_not_expired_query(today: date):
     focus = current_app.config.get("FOCUS_STATE")
     if focus:
         query = query.filter(Scholarship.states.any(focus))
+    # Every card says "Essay required" or "No essay"; a listing whose essay
+    # requirement hasn't been confirmed from its official page isn't shown.
+    query = query.filter(Scholarship.essay_required.isnot(None))
     return query
 
 

@@ -47,6 +47,7 @@ def good_candidate(**overrides):
         "award_frequency": "one_time",
         "num_awards": 4,
         "evidence": "Four awards of $5,000 each will be given to graduating seniors.",
+        "essay_required": False,
     }
     c.update(overrides)
     return c
@@ -322,3 +323,26 @@ def test_single_state_awards_get_a_smaller_applicant_pool():
     assert estimate_applicant_pool(500) == 800
     assert estimate_applicant_pool(500, ["MD"]) == 80
     assert estimate_applicant_pool(2000, ["MD", "DC"]) == 2500  # multi-state stays national-sized
+
+
+
+def test_essay_requirement_must_be_decided():
+    from scraper.daily_discovery import validate_fields
+    from datetime import date
+    problems = validate_fields(good_candidate(essay_required=None), date(2026, 11, 10))
+    assert any("essay_required" in p for p in problems)
+
+
+def test_essay_answer_must_match_the_page():
+    from scraper.daily_discovery import essay_mismatch
+    no_essay_page = "Award $500. Deadline 01/31/2027. Must have a 2.0 GPA."
+    essay_page = "Award $500. Applicants must submit a 500-word essay on their goals."
+    prompt_page = "Supplemental Questions Please describe your community service."
+    says_none = "Quick application, no essay required. Award $500."
+    assert essay_mismatch(False, no_essay_page) is None
+    assert essay_mismatch(True, no_essay_page)          # claims an essay the page never asks for
+    assert essay_mismatch(True, essay_page) is None
+    assert essay_mismatch(False, essay_page)            # hides an essay the page asks for
+    assert essay_mismatch(True, prompt_page) is None    # a describe-your question counts
+    assert essay_mismatch(False, says_none) is None
+    assert essay_mismatch(True, says_none)

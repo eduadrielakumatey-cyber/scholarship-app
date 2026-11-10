@@ -33,8 +33,7 @@ function Requirements({ s }) {
   if (s.grade_levels?.length) items.push(`Open to: ${s.grade_levels.map((g) => GRADE_LABELS[g] || g).join(", ")}`);
   items.push(s.states?.length ? `Where: ${s.states.join(", ")} students` : "Where: anywhere in the U.S.");
   if (s.min_gpa) items.push(`GPA: ${s.min_gpa} or higher`);
-  if (s.essay_required === true) items.push("Essay: required");
-  if (s.essay_required === false) items.push("Essay: none");
+  items.push(s.essay_required ? "Essay: required" : "Essay: none");
   return (
     <ul className="apply-reqs">
       {items.map((t) => (
@@ -187,7 +186,7 @@ function HostedApply({ s }) {
 function OutsideApply({ s }) {
   const [submitted, setSubmitted] = useState(s.app_status === "submitted");
   const [error, setError] = useState(null);
-  const essayMaybe = s.essay_required !== false;
+  const needsEssay = s.essay_required === true;
 
   async function markDone() {
     setError(null);
@@ -208,13 +207,12 @@ function OutsideApply({ s }) {
         {s.description && <p className="apply-desc">{s.description}</p>}
       </li>
 
-      {essayMaybe && (
+      {needsEssay && (
         <li>
           <h2>Get your essay ready</h2>
           <p className="field-help">
-            {s.essay_required === true
-              ? "This one asks for an essay. Check the official page for the exact question, write it here, then copy it into their form."
-              : "We couldn't confirm whether this one wants an essay. If it does, write it here so it's saved for next time too."}
+            This one asks for an essay. Check the official page for the exact question, write it
+            here, then copy it into their form.
           </p>
           <EssayEditor />
         </li>
