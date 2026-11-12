@@ -54,7 +54,7 @@ function Header({ s }) {
         {s.title}
       </h1>
       <p className="page-subtitle">
-        {s.organization} · {money(s.award_amount)} ·{" "}
+        {s.organization} · {s.amount_varies ? "Amount varies" : money(s.award_amount)} ·{" "}
         {s.deadline ? `Due ${new Date(`${s.deadline}T00:00`).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}` : "Rolling deadline"}
       </p>
     </>

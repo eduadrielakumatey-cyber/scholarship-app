@@ -446,3 +446,11 @@ def test_school_award_hidden_only_when_student_picked_other_colleges():
 
 def test_awards_open_to_any_school_are_never_hidden_by_the_school_filter():
     assert is_eligible(make_user(schools=[]), make_scholarship(school=None))[0]
+
+
+def test_amount_varies_ranks_with_the_stand_in_not_zero():
+    from app.services.scoring import VARIES_RANKING_AMOUNT, application_value_raw
+    varies = make_scholarship(award_amount=0, amount_varies=True, estimated_hours_to_apply=1.0)
+    assert application_value_raw(varies, 1.0)["dollars_per_hour_if_won"] == VARIES_RANKING_AMOUNT
+    zero = make_scholarship(award_amount=0, estimated_hours_to_apply=1.0)
+    assert application_value_raw(zero, 1.0)["dollars_per_hour_if_won"] == 0

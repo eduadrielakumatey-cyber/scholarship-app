@@ -13,7 +13,7 @@ export default function DeadlineList({ deadlines }) {
         <li key={`${d.title}-${d.deadline}`} className="deadline-list__row">
           <div className="deadline-list__info">
             <span className="deadline-list__title">{d.title}</span>
-            <span className="deadline-list__amount">${d.amount.toLocaleString()}</span>
+            <span className="deadline-list__amount">{d.amount_varies ? "Varies" : `$${d.amount.toLocaleString()}`}</span>
           </div>
           <span
             className={`deadline-list__days ${

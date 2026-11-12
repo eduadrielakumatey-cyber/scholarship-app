@@ -40,6 +40,7 @@ def _interaction_rows(user_id: int):
             Interaction.action,
             Interaction.app_status,
             Scholarship.award_amount,
+            Scholarship.amount_varies,
             Scholarship.title,
             Scholarship.interests,
             Scholarship.deadline,
@@ -70,9 +71,11 @@ def build_stats(user) -> dict:
 
     match_counts = get_match_counts(user)
 
-    saved_amounts = [float(r.award_amount or 0) for r in saved_rows]
+    # "Amount varies" awards have no dollar figure, so they're left out of
+    # the money totals instead of counting as $0.
+    saved_amounts = [float(r.award_amount or 0) for r in saved_rows if not r.amount_varies]
     total_saved_value = round(sum(saved_amounts), 2)
-    average_saved_award = round(total_saved_value / saved_count, 2) if saved_count else None
+    average_saved_award = round(total_saved_value / len(saved_amounts), 2) if saved_amounts else None
     highest_row = max(saved_rows, key=lambda r: float(r.award_amount or 0), default=None)
     highest_saved = (
         {"title": highest_row.title, "amount": float(highest_row.award_amount or 0)}
@@ -98,6 +101,7 @@ def build_stats(user) -> dict:
         {
             "title": r.title,
             "amount": float(r.award_amount or 0),
+            "amount_varies": bool(r.amount_varies),
             "deadline": r.deadline.isoformat(),
             "days_left": (r.deadline - today).days,
         }

@@ -46,6 +46,9 @@ class Scholarship(db.Model):
     # The value of a SINGLE disbursement -- not necessarily the total a
     # winner could receive if the award is annual and renewable.
     award_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    # True when the official page says the amount varies (or lists $0.00):
+    # award_amount is then 0 and students see "Amount varies".
+    amount_varies = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     # 'one_time' | 'annual' | 'unknown'. Defaults to 'unknown', not
     # 'one_time' -- a lack of evidence about recurrence is not the same as
     # verified evidence there isn't any. See backfill_award_structure.py
@@ -183,6 +186,7 @@ class Scholarship(db.Model):
             # proper name going forward.
             "amount": float(self.award_amount) if self.award_amount is not None else 0.0,
             "award_amount": float(self.award_amount) if self.award_amount is not None else 0.0,
+            "amount_varies": self.amount_varies,
             "award_frequency": self.award_frequency,
             "renewable": self.renewable,
             "renewal_years": self.renewal_years,

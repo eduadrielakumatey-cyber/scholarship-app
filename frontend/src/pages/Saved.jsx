@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import * as api from "../api/client.js";
+import { awardLabel } from "../lib/money.js";
 import {
   Bookmark,
   CircleCheck,
@@ -246,7 +247,7 @@ function SavedCard({ item, onStatusChange, onRemove }) {
     <div className="saved-card">
       {/* Top row: amount + status tag */}
       <div className="saved-card__top">
-        <span className="saved-card__amount">${item.amount.toLocaleString()}</span>
+        <span className="saved-card__amount">{awardLabel(item)}</span>
         <span
           className="saved-card__status-tag"
           style={{ color: STATUS_COLORS[status] || STATUS_COLORS.saved }}

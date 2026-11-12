@@ -232,7 +232,10 @@ def validate_fields(c: dict, today: date) -> list[str]:
             problems.append("source_url is a PDF (can't be verified automatically)")
 
     amount = c.get("amount")
-    if isinstance(amount, bool) or not isinstance(amount, (int, float)):
+    if c.get("amount_varies") is True:
+        if amount not in (None, 0):
+            problems.append("amount_varies is true, so amount must be left out")
+    elif isinstance(amount, bool) or not isinstance(amount, (int, float)):
         problems.append("amount must be a number")
     elif not (MIN_AMOUNT <= amount <= MAX_AMOUNT):
         problems.append(f"amount {amount} outside ${MIN_AMOUNT:,}-${MAX_AMOUNT:,}")
@@ -296,6 +299,10 @@ def validate_fields(c: dict, today: date) -> list[str]:
 # ---------------------------------------------------------------------------
 # 4. Page proof (pure given page text -- testable without the network)
 # ---------------------------------------------------------------------------
+
+# How AcademicWorks pages show an award with no fixed amount.
+VARIES_ON_PAGE = re.compile(r"Award\s+(Varies|\$0\.00)(?![\d,])", re.I)
+
 
 def amount_variants(amount: float) -> list[str]:
     n = int(round(amount))
@@ -415,6 +422,37 @@ def page_questions(url: str, essay_required) -> list[dict]:
     return Q.build(html, _visible_text(html), essay_required)
 
 
+_SOURCE_PAGES: dict[str, str] = {}
+
+
+def general_app_essay_problem(c: dict) -> str | None:
+    """For awards that are applied to through a college's General
+    Application: the candidate names the college's official page
+    (essay_source_url) and quotes its essay requirement word for word
+    (essay_source_quote). Returns a problem, or None when proven."""
+    url, quote = c.get("essay_source_url"), c.get("essay_source_quote")
+    if not url:
+        return None
+    if c.get("essay_required") is not True:
+        return "essay_source_url is only for essays required by a General Application"
+    if not isinstance(quote, str) or not ESSAY_WORD.search(quote):
+        return "essay_source_quote must quote the essay requirement"
+    if not url.startswith("https://"):
+        return "essay_source_url must be https"
+    if url not in _SOURCE_PAGES:
+        try:
+            resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT_SECONDS)
+            _SOURCE_PAGES[url] = resp.content.decode("utf-8", errors="replace") if resp.status_code == 200 else ""
+        except requests.exceptions.RequestException:
+            _SOURCE_PAGES[url] = ""
+    if normalize_text(quote) not in normalize_text(_visible_text(_SOURCE_PAGES[url])):
+        return "General Application essay quote not found on the college's page"
+    return None
+
+
+ESSAY_WORD = re.compile(r"\bessays?\b|personal statement", re.I)
+
+
 def verify_page_content(c: dict, page_text: str) -> list[str]:
     """Checks the candidate's claims against the official page's text."""
     problems: list[str] = []
@@ -425,7 +463,10 @@ def verify_page_content(c: dict, page_text: str) -> list[str]:
     if not title_on_page(c["title"], page):
         problems.append("scholarship name not found on the official page")
 
-    if not any(_contains_phrase(page, v) for v in amount_variants(c["amount"])):
+    if c.get("amount_varies") is True:
+        if not VARIES_ON_PAGE.search(page):
+            problems.append("amount_varies is true but the official page shows a fixed amount")
+    elif not any(_contains_phrase(page, v) for v in amount_variants(c["amount"])):
         problems.append(f"award amount ${c['amount']:,} not found on the official page")
 
     if c.get("deadline"):
@@ -437,9 +478,12 @@ def verify_page_content(c: dict, page_text: str) -> list[str]:
     if evidence and evidence not in page:
         problems.append("evidence quote not found verbatim on the official page")
 
-    essay_problem = essay_mismatch(c.get("essay_required"), page_text)
-    if essay_problem:
-        problems.append(essay_problem)
+    # An essay that's part of the college's General Application is proven on
+    # the college's own page (see general_app_essay_problem), not here.
+    if not c.get("essay_source_url"):
+        essay_problem = essay_mismatch(c.get("essay_required"), page_text)
+        if essay_problem:
+            problems.append(essay_problem)
 
     flagged = fee_red_flag(re.sub(r"\s+", " ", page_text.lower()))
     if flagged:
@@ -599,7 +643,8 @@ def school_for(c: dict) -> str | None:
 def _build_row(c: dict, batch_source: str, today: date):
     from app.models import Scholarship
 
-    amount = float(c["amount"])
+    varies = c.get("amount_varies") is True
+    amount = 0.0 if varies else float(c["amount"])
     hours = c.get("estimated_hours_to_apply")
     hours = float(hours) if isinstance(hours, (int, float)) and 0.25 <= hours <= 60 else 2.0
     return Scholarship(
@@ -607,6 +652,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         organization=c["organization"].strip(),
         description=c["description"].strip(),
         award_amount=amount,
+        amount_varies=varies,
         award_frequency=c.get("award_frequency", "unknown"),
         renewable=c.get("renewable") if isinstance(c.get("renewable"), bool) else None,
         deadline=datetime.strptime(c["deadline"], "%Y-%m-%d").date() if c.get("deadline") else None,
@@ -620,7 +666,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         essay_required=c["essay_required"],
         school=school_for(c),
         questions=c.get("_questions") or [],
-        estimated_applicant_pool=estimate_applicant_pool(amount, c.get("states")),
+        estimated_applicant_pool=estimate_applicant_pool(amount or 1000.0, c.get("states")),
         num_awards=c.get("num_awards") or 1,
         source_name=batch_source,
         source_url=c["source_url"].strip(),
@@ -725,12 +771,20 @@ def run(
                 continue
 
             o.reasons = verify_page_content(c, text)
+            essay_source_problem = general_app_essay_problem(c)
+            if essay_source_problem:
+                o.reasons.append(essay_source_problem)
             if o.reasons:
                 continue
 
             # Copy the application's questions so students can answer them
             # in the app. An essay listing must have its essay question.
             questions = page_questions(c["source_url"], c.get("essay_required"))
+            if c.get("essay_source_url") and not any(q["kind"] == "written" for q in questions):
+                from app.services.questions import question_key
+
+                text_q = f"General Application essay: {c['essay_source_quote'].strip()}"
+                questions.append({"key": question_key(text_q), "text": text_q, "kind": "written", "source": "general_application"})
             if c.get("essay_required") and not any(q["kind"] == "written" for q in questions):
                 o.reasons = ["essay_required is true but the essay question couldn't be found on the official page"]
                 continue
@@ -820,7 +874,7 @@ def write_report(outcomes: list[Outcome], summary: dict) -> Path:
             c = o.candidate
             who = ", ".join(c.get("grade_levels") or []) + (f" · {', '.join(c['states'])}" if c.get("states") else " · national")
             lines.append(
-                f"| {c['title']} ({c['organization']}) | {money(c.get('amount'))} | "
+                f"| {c['title']} ({c['organization']}) | {'Varies' if c.get('amount_varies') is True else money(c.get('amount'))} | "
                 f"{c.get('deadline') or 'rolling'} | {who} | {c['source_url']} |"
             )
     else:

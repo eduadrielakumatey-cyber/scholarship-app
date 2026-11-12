@@ -354,3 +354,26 @@ def test_school_comes_from_the_college_portal_or_an_explicit_field():
     assert school_for(portal) == "Salisbury University"
     assert school_for({"source_url": "https://mhec.maryland.gov/x", "organization": "MHEC"}) is None
     assert school_for({"source_url": "https://example.org/x", "organization": "X", "school": "Towson University"}) == "Towson University"
+
+
+def test_amount_varies_candidates_skip_the_amount_but_need_varies_on_the_page():
+    from scraper.daily_discovery import VARIES_ON_PAGE, validate_fields
+    assert VARIES_ON_PAGE.search("Award Varies Deadline 01/01/2027")
+    assert VARIES_ON_PAGE.search("Award $0.00 Deadline 12/01/2026")
+    assert not VARIES_ON_PAGE.search("Award $1,000.00 Deadline 12/01/2026")
+    assert validate_fields(good_candidate(amount=None, amount_varies=True), TODAY) == []
+    assert validate_fields(good_candidate(amount=500, amount_varies=True), TODAY) == ["amount_varies is true, so amount must be left out"]
+    assert "amount must be a number" in validate_fields(good_candidate(amount=None), TODAY)
+
+
+def test_general_application_essay_is_proven_on_the_colleges_page(monkeypatch):
+    import scraper.daily_discovery as dd
+
+    page = "<html><body><p>Tips: The information you provide in your essay should explain your goals.</p></body></html>"
+    monkeypatch.setattr(dd, "_SOURCE_PAGES", {"https://college.edu/scholarships": page})
+    c = good_candidate(essay_required=True, essay_source_url="https://college.edu/scholarships",
+                       essay_source_quote="The information you provide in your essay should explain your goals.")
+    assert dd.general_app_essay_problem(c) is None
+    assert "not found" in dd.general_app_essay_problem({**c, "essay_source_quote": "Your essay must be 500 words."})
+    assert dd.general_app_essay_problem({**c, "essay_required": False}).startswith("essay_source_url is only")
+    assert dd.general_app_essay_problem(good_candidate()) is None  # ordinary listings are untouched

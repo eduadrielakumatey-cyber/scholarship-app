@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Heart, X } from "lucide-react";
 import ScholarshipMetrics from "./ScholarshipMetrics.jsx";
+import { awardLabel } from "../lib/money.js";
 import { gradeLevelLabel } from "../constants/gradeLevels.js";
 
 const SWIPE_THRESHOLD = 110;
@@ -145,7 +146,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
 
       <div className="card-body">
         <div className="card-header">
-          <span className="card-amount">${Number(scholarship.amount).toLocaleString()}</span>
+          <span className="card-amount">{awardLabel(scholarship)}</span>
           <span className="card-deadline">
             {scholarship.deadline
               ? `Due ${new Date(scholarship.deadline).toLocaleDateString(undefined, {

@@ -254,6 +254,13 @@ def competitiveness_estimate(scholarship) -> dict:
     return {"ratio": round(ratio, 4), "one_in": one_in, "display": display}
 
 
+# Ranking stand-in for awards whose page says the amount varies: the median
+# award among the college-portal listings with a published amount ($1,000
+# on 2026-11-11). Used only to order the deck; students see "Amount varies",
+# never this number.
+VARIES_RANKING_AMOUNT = 1000.0
+
+
 def application_value_raw(scholarship, competitiveness_ratio: float) -> dict:
     """
     Dollar figures only -- amount, effort, and (via expected_value_per_hour)
@@ -262,6 +269,8 @@ def application_value_raw(scholarship, competitiveness_ratio: float) -> dict:
     matching.py.
     """
     amount = float(scholarship.award_amount or 0)
+    if getattr(scholarship, "amount_varies", False) and not amount:
+        amount = VARIES_RANKING_AMOUNT
     hours = max(float(scholarship.estimated_hours_to_apply or 1), 0.25)
     dollars_per_hour_if_won = round(amount / hours, 2)
     expected_value = round(amount * competitiveness_ratio, 2)

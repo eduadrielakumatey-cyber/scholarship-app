@@ -99,6 +99,7 @@ export default function ScholarshipMetrics({ scholarship }) {
     preference_boost: preferenceBoost,
     final_score: finalScore,
     amount,
+    amount_varies: amountVaries,
   } = scholarship;
 
   if (eligible === false) {
@@ -130,12 +131,15 @@ export default function ScholarshipMetrics({ scholarship }) {
           <span className="stub-value stub-value--chance">{competitiveness.display}</span>
           <span className="stub-label">competitiveness</span>
         </div>
+        {/* No published amount means no honest dollar estimate. */}
         <div className="stub-cell">
-          <span className="stub-value stub-value--money">{formatMoney(applicationValue.expected_value_per_hour)}/hr</span>
+          <span className="stub-value stub-value--money">
+            {amountVaries ? "?" : `${formatMoney(applicationValue.expected_value_per_hour)}/hr`}
+          </span>
           <span className="stub-label">exp. value/hr</span>
         </div>
         <div className="stub-cell">
-          <span className="stub-value stub-value--ev">{formatMoney(applicationValue.expected_value)}</span>
+          <span className="stub-value stub-value--ev">{amountVaries ? "?" : formatMoney(applicationValue.expected_value)}</span>
           <span className="stub-label">exp. value</span>
         </div>
       </div>
@@ -143,8 +147,10 @@ export default function ScholarshipMetrics({ scholarship }) {
       {/* Urgency + award row */}
       <div className="stub-meta-row">
         <UrgencyBadge urgency={urgency} />
-        <span className="stub-award">Award: {formatMoney(amount)}</span>
-        <span className="stub-dph">{formatMoney(applicationValue.dollars_per_hour_if_won)}/hr if won</span>
+        <span className="stub-award">Award: {amountVaries ? "amount varies" : formatMoney(amount)}</span>
+        {!amountVaries && (
+          <span className="stub-dph">{formatMoney(applicationValue.dollars_per_hour_if_won)}/hr if won</span>
+        )}
       </div>
 
       <WhyThisMatch matchQuality={matchQuality} preferenceBoost={preferenceBoost} />
