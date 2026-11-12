@@ -65,6 +65,21 @@ def _active_not_expired_query(today: date):
     return query
 
 
+def school_options(today: date | None = None) -> dict:
+    """The colleges with awards only their own students can get, with how
+    many open listings each has, plus how many listings are open to any
+    school -- for the "Which colleges?" picker."""
+    rows = (
+        _active_not_expired_query(today or date.today())
+        .with_entities(Scholarship.school, db.func.count())
+        .group_by(Scholarship.school)
+        .all()
+    )
+    schools = sorted(({"name": s, "count": n} for s, n in rows if s), key=lambda r: r["name"])
+    any_school = sum(n for s, n in rows if not s)
+    return {"schools": schools, "any_school_count": any_school}
+
+
 def _percentile(value: float, pool: list[float]) -> float:
     """
     What fraction of `pool` this value is at or above, as 0-100. Self-
@@ -216,6 +231,8 @@ def _excluded_scholarship_ids(user) -> set[int]:
 
 def _reason_category(reason: str) -> str:
     """Collapse is_eligible()'s specific reasons into a few readable buckets."""
+    if reason.startswith("Only for students at"):
+        return "Only for students at other colleges"
     if "GPA" in reason:
         return "GPA below the minimum"
     if "your state" in reason:

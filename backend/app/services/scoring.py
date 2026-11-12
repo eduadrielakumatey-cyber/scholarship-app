@@ -102,6 +102,11 @@ def is_eligible(user, scholarship) -> tuple[bool, list[str]]:
         if not (required_demo & user_demo):
             reasons.append("Requires a demographic group not on your profile")
 
+    school = getattr(scholarship, "school", None)
+    picked = getattr(user, "schools", None)
+    if school and picked is not None and school not in picked:
+        reasons.append(f"Only for students at {school}")
+
     # Major is only a HARD gate when the scholarship is explicitly flagged
     # as legally/structurally major-restricted. Otherwise a mismatch is a
     # Match Quality signal, not a disqualification -- see major_alignment().
@@ -360,6 +365,10 @@ def matched_on(user, scholarship) -> list[str]:
     majors = _safe_lower_set(scholarship.majors)
     if majors and user.major and user.major.lower() in majors:
         chips.append(f"Major: {user.major}")
+
+    school = getattr(scholarship, "school", None)
+    if school and school in (getattr(user, "schools", None) or []):
+        chips.append(f"School: {school}")
 
     shared_demo = _safe_lower_set(scholarship.demographics) & _safe_lower_set(user.demographics)
     for group in sorted(shared_demo)[:2]:

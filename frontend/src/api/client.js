@@ -102,6 +102,7 @@ export const updateProfile = (fields) => request("/api/profile", { method: "PUT"
 
 // --- Scholarships ---
 export const getDeck = (limit = 25) => request(`/api/scholarships/deck?limit=${limit}`);
+export const getSchools = () => request("/api/scholarships/schools", { auth: false });
 export const getScholarship = (id) => request(`/api/scholarships/${id}`);
 export const swipeScholarship = (id, action) =>
   request(`/api/scholarships/${id}/swipe`, { method: "POST", body: { action } });

@@ -15,6 +15,7 @@ from datetime import date
 import pytest
 
 from scraper.daily_discovery import (
+    school_for,
     ExistingIndex,
     MAX_DAYS_TO_DEADLINE,
     _same_site,
@@ -346,3 +347,10 @@ def test_essay_answer_must_match_the_page():
     assert essay_mismatch(True, prompt_page) is None    # a describe-your question counts
     assert essay_mismatch(False, says_none) is None
     assert essay_mismatch(True, says_none)
+
+
+def test_school_comes_from_the_college_portal_or_an_explicit_field():
+    portal = {"source_url": "https://salisbury.academicworks.com/opportunities/123", "organization": "Salisbury University"}
+    assert school_for(portal) == "Salisbury University"
+    assert school_for({"source_url": "https://mhec.maryland.gov/x", "organization": "MHEC"}) is None
+    assert school_for({"source_url": "https://example.org/x", "organization": "X", "school": "Towson University"}) == "Towson University"

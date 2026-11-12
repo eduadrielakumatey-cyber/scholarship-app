@@ -133,3 +133,4 @@ class TestReasonCategory:
         assert _reason_category("Not open to high school seniors") == "Not open to your grade level"
         assert _reason_category("Requires a demographic group not on your profile").startswith("For a specific")
         assert _reason_category("Restricted to majors: nursing") == "Restricted to other majors"
+        assert _reason_category("Only for students at Towson University") == "Only for students at other colleges"

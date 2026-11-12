@@ -5110,3 +5110,28 @@ body.rich-focus-open {
   font-size: 0.78rem;
   opacity: 0.7;
 }
+
+/* "Pick your colleges" nudge on Discover (page background, on-dark tokens). */
+.school-nudge {
+  margin: 0 auto 10px;
+  max-width: 440px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-on-dark-soft);
+}
+.school-nudge a { color: var(--color-on-dark); font-weight: 600; }
+
+/* College picker on the profile page. */
+.school-list {
+  margin-top: 6px;
+  padding-left: 26px;
+  display: grid;
+  gap: 2px;
+}
+.school-option__count {
+  margin-left: 4px;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+.school-option__count::before { content: "("; }
+.school-option__count::after { content: ")"; }

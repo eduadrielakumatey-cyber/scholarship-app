@@ -14,7 +14,7 @@ from flask import current_app, Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
-from app.models import User
+from app.models import Scholarship, User
 from app.utils.validators import is_valid_grade_level, is_valid_state, normalize_interests
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/api/profile")
@@ -32,6 +32,7 @@ ALLOWED_FIELDS = {
     "demographics",
     "interests",
     "major",
+    "schools",
 }
 
 
@@ -58,6 +59,18 @@ def update_profile():
     focus = current_app.config.get("FOCUS_STATE")
     if focus and "state" in data and data["state"] and data["state"].strip().upper() != focus:
         return jsonify({"error": "ScholarMatch is only for Maryland students right now"}), 400
+
+    # Colleges the student attends or is considering: null = "not sure yet"
+    # (nothing hidden), otherwise a list of names from the school picker.
+    if "schools" in data and data["schools"] is not None:
+        picked = data["schools"]
+        if not isinstance(picked, list) or not all(isinstance(s, str) for s in picked):
+            return jsonify({"error": "schools must be a list of college names"}), 400
+        known = {s for (s,) in db.session.query(Scholarship.school).filter(Scholarship.school.isnot(None)).distinct()}
+        unknown = [s for s in picked if s not in known]
+        if unknown:
+            return jsonify({"error": f"unknown school: {unknown[0]}"}), 400
+        data["schools"] = sorted(set(picked))
 
     # Demographics are sensitive, so they're only stored with an explicit
     # opt-in. Withdrawing consent erases whatever was saved.

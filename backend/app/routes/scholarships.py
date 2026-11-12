@@ -4,6 +4,7 @@ app/routes/scholarships.py
 Read-only scholarship browsing, scored per-user.
 
   GET /api/scholarships/deck          -> next batch of swipe cards (scored, ranked)
+  GET /api/scholarships/schools       -> colleges with their own awards (profile picker)
   GET /api/scholarships/<id>           -> single scholarship, scored for this user
   POST /api/scholarships/<id>/swipe     -> record a like/pass/save action
 """
@@ -13,7 +14,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
 from app.models import User, Scholarship, Interaction
-from app.services.matching import get_swipe_deck_with_summary, score_single
+from app.services.matching import get_swipe_deck_with_summary, school_options, score_single
 from app.services.scoring import is_eligible
 from app.utils.validators import normalize_interests
 
@@ -34,6 +35,12 @@ def deck():
     limit = request.args.get("limit", default=25, type=int)
     cards, filtered = get_swipe_deck_with_summary(user, limit=limit)
     return jsonify({"count": len(cards), "results": cards, "filtered": filtered})
+
+
+@scholarships_bp.get("/schools")
+def schools():
+    # Public: the start screen shows the picker before a profile exists.
+    return jsonify(school_options())
 
 
 @scholarships_bp.get("/<int:scholarship_id>")

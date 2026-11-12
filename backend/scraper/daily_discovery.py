@@ -584,6 +584,18 @@ class Outcome:
     scholarship_id: int | None = None
 
 
+def school_for(c: dict) -> str | None:
+    """The one college a winner must attend, or None for any school. An
+    explicit "school" on the candidate wins; otherwise every award on a
+    college's own AcademicWorks portal belongs to that college."""
+    if isinstance(c.get("school"), str) and c["school"].strip():
+        return c["school"].strip()[:160]
+    host = urlparse(c.get("source_url") or "").netloc.lower()
+    if host.endswith(".academicworks.com"):
+        return (c.get("organization") or "").strip()[:160] or None
+    return None
+
+
 def _build_row(c: dict, batch_source: str, today: date):
     from app.models import Scholarship
 
@@ -606,6 +618,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         interests=normalize_interests(c.get("interests") or []),
         estimated_hours_to_apply=hours,
         essay_required=c["essay_required"],
+        school=school_for(c),
         questions=c.get("_questions") or [],
         estimated_applicant_pool=estimate_applicant_pool(amount, c.get("states")),
         num_awards=c.get("num_awards") or 1,

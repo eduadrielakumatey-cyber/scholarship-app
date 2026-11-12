@@ -96,6 +96,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
 
   // Build eligibility tags
   const tags = [];
+  if (scholarship.school) tags.push(`${scholarship.school} students only`);
   if (scholarship.min_gpa) tags.push(`GPA ${scholarship.min_gpa}+`);
   if (scholarship.grade_levels && scholarship.grade_levels.length > 0) {
     tags.push(gradeLevelsTag(scholarship.grade_levels));

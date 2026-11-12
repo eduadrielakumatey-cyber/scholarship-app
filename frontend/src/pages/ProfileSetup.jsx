@@ -17,6 +17,7 @@ import InterestSelector from "../components/InterestSelector.jsx";
 import AccountSettings from "../components/AccountSettings.jsx";
 import LegalFooter from "../components/LegalFooter.jsx";
 import Guide from "../components/guide/Guide.jsx";
+import { getSchools } from "../api/client.js";
 
 const DEMOGRAPHIC_OPTIONS = [
   "first-generation", "female", "male", "veteran", "rural", "lgbtq+",
@@ -44,6 +45,11 @@ function guideReaction(field, form, { saving, error, isNewProfile }) {
       return { mood: "thinking", message: "Some scholarships are only for high school seniors, others only for college students." };
     case "state":
       return { mood: "happy", message: "Local money is the best money: state scholarships usually get fewer applicants." };
+    case "schools":
+      return {
+        mood: "thinking",
+        message: "Most local awards are for one college's own students. Pick yours so I can hide the rest.",
+      };
     case "major":
       return { mood: "curious", message: "Not sure yet? Put your best guess. You can change it anytime." };
     case "demographics":
@@ -60,6 +66,57 @@ function guideReaction(field, form, { saving, error, isNewProfile }) {
         ? { mood: "happy", message: "Let's build your profile! I only ask for what helps me match you." }
         : { mood: "idle", message: "Update anything here and I'll refresh your matches." };
   }
+}
+
+// Colleges the student attends or might attend. null = "not sure yet"
+// (show every college's awards); a list (even empty) hides awards that
+// only other colleges' students can get.
+function SchoolPicker({ value, onChange }) {
+  const [options, setOptions] = useState(null);
+  useEffect(() => {
+    getSchools().then(setOptions).catch(() => setOptions({ schools: [], any_school_count: 0 }));
+  }, []);
+  const picking = value !== null;
+  const toggle = (name) =>
+    onChange(value.includes(name) ? value.filter((s) => s !== name) : [...value, name]);
+
+  return (
+    <fieldset className="field-group field-group--fieldset" data-guide="schools">
+      <legend>Your college</legend>
+      <p className="field-help">
+        Most Maryland scholarships here are only for students at one college. Tell us which
+        colleges you go to or are thinking about, and we&apos;ll hide awards from the others.
+      </p>
+      <label className="consent-check">
+        <input type="radio" name="school-mode" checked={!picking} onChange={() => onChange(null)} />
+        <span>Not sure yet: show scholarships from every college</span>
+      </label>
+      <label className="consent-check">
+        <input type="radio" name="school-mode" checked={picking} onChange={() => onChange([])} />
+        <span>Only show scholarships for colleges I pick</span>
+      </label>
+      {picking && (
+        <div className="school-list">
+          {options === null && <p className="field-help">Loading colleges...</p>}
+          {options?.schools.map((s) => (
+            <label key={s.name} className="consent-check school-option">
+              <input type="checkbox" checked={value.includes(s.name)} onChange={() => toggle(s.name)} />
+              <span>
+                {s.name} <span className="school-option__count">{s.count}</span>
+              </span>
+            </label>
+          ))}
+          {options && (
+            <p className="field-help">
+              {value.length === 0
+                ? `None checked: you'll only see the ${options.any_school_count} scholarships open to students at any college.`
+                : `Scholarships open to students at any college (${options.any_school_count}) always show.`}
+            </p>
+          )}
+        </div>
+      )}
+    </fieldset>
+  );
 }
 
 function ChipSelect({ options, selected, onToggle, disabled = false }) {
@@ -96,6 +153,7 @@ export default function ProfileSetup() {
     demographics: [],
     demographics_consent: false,
     interests: [],
+    schools: null,
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -113,6 +171,7 @@ export default function ProfileSetup() {
       demographics: user.demographics || [],
       demographics_consent: Boolean(user.demographics_consent),
       interests: user.interests || [],
+      schools: user.schools ?? null,
     });
   }, [user]);
 
@@ -209,6 +268,8 @@ export default function ProfileSetup() {
           </select>
           <p className="field-help">ScholarMatch is just for Maryland students right now.</p>
         </div>
+
+        <SchoolPicker value={form.schools} onChange={(schools) => setForm((prev) => ({ ...prev, schools }))} />
 
         <div className="field-group">
           <label htmlFor="major">Intended major</label>

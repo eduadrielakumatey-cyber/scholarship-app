@@ -69,6 +69,9 @@ class Scholarship(db.Model):
     # listed major is only a Match Quality signal -- a related-but-not-exact
     # major is still shown, just ranked lower, instead of being hidden.
     majors_are_hard_requirement = db.Column(db.Boolean, nullable=False, default=False)
+    # The one college a winner must attend (e.g. an award posted on
+    # Salisbury University's own scholarship portal). NULL = any school.
+    school = db.Column(db.String(160), nullable=True)
 
     # --- Effort / value inputs for the scoring engine ---
     # Estimated hours a typical applicant spends on essays/forms. Defaults to
@@ -192,6 +195,7 @@ class Scholarship(db.Model):
             "majors": self.majors or [],
             "interests": self.interests or [],
             "majors_are_hard_requirement": self.majors_are_hard_requirement,
+            "school": self.school,
             "estimated_hours_to_apply": self.estimated_hours_to_apply,
             "essay_required": self.essay_required,
             "num_awards": self.num_awards,

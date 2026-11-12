@@ -425,3 +425,24 @@ class TestMatchedOn:
             min_gpa=None, grade_levels=[], majors=[], interests=[], demographics=[], states=[]
         )
         assert matched_on(make_user(), open_award) == ["Open to all students"]
+
+
+# ---------------------------------------------------------------------------
+# School filter: awards only one college's students can get
+# ---------------------------------------------------------------------------
+
+def test_school_award_hidden_only_when_student_picked_other_colleges():
+    award = make_scholarship(school="Salisbury University")
+    # Not answered yet ("not sure"): nothing is hidden.
+    assert is_eligible(make_user(schools=None), award)[0]
+    assert is_eligible(make_user(), award)[0]
+    # Picked Salisbury: shown.
+    assert is_eligible(make_user(schools=["Salisbury University", "Towson University"]), award)[0]
+    # Picked other colleges, or "none of these": hidden, with a reason.
+    ok, reasons = is_eligible(make_user(schools=["Towson University"]), award)
+    assert not ok and reasons == ["Only for students at Salisbury University"]
+    assert not is_eligible(make_user(schools=[]), award)[0]
+
+
+def test_awards_open_to_any_school_are_never_hidden_by_the_school_filter():
+    assert is_eligible(make_user(schools=[]), make_scholarship(school=None))[0]

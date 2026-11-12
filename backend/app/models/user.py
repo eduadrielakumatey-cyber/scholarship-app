@@ -35,6 +35,10 @@ class User(db.Model):
     demographics = db.Column(ARRAY(db.String), default=list)  # e.g. ["first-generation"]
     interests = db.Column(ARRAY(db.String), default=list)     # e.g. ["robotics", "art"]
     major = db.Column(db.String(120), nullable=True)          # intended college major
+    # Colleges the student attends or is considering. NULL = not answered
+    # (nothing hidden); [] = none of the listed ones (every college-only
+    # award hidden). Matching hides awards tied to any other college.
+    schools = db.Column(ARRAY(db.String), nullable=True)
 
     # --- Consent records ---
     # When (and to which version of the Terms/Privacy Policy) the student
@@ -82,6 +86,7 @@ class User(db.Model):
             "demographics": self.demographics or [],
             "interests": self.interests or [],
             "major": self.major,
+            "schools": self.schools,
             "profile_complete": self.profile_is_complete(),
             "demographics_consent": self.demographics_consent_at is not None,
         }

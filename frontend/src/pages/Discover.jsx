@@ -6,7 +6,7 @@
 // round trip and gives a clearer next step).
 
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useScholarships } from "../hooks/useScholarships.js";
 import SwipeDeck from "../components/SwipeDeck.jsx";
@@ -114,6 +114,12 @@ export default function Discover() {
         </div>
       )}
 
+      {!loading && !error && user?.schools == null && deck.some((s) => s.school) && (
+        <p className="school-nudge">
+          Most of these are only for students at one college.{" "}
+          <Link to="/profile">Pick your colleges</Link> to hide the rest.
+        </p>
+      )}
       {!loading && !error && filtered?.hidden_count > 0 && <FilteredNote filtered={filtered} />}
 
       {loading && (
