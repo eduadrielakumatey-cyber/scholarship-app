@@ -70,30 +70,29 @@ function guideReaction(field, form, { saving, error, isNewProfile }) {
 
 // Colleges the student attends or might attend. null = "not sure yet"
 // (show every college's awards); a list (even empty) hides awards that
-// only other colleges' students can get.
+// only other colleges' students can get; undefined = not answered yet,
+// which the required radios block on submit.
 function SchoolPicker({ value, onChange }) {
   const [options, setOptions] = useState(null);
   useEffect(() => {
     getSchools().then(setOptions).catch(() => setOptions({ schools: [], any_school_count: 0 }));
   }, []);
-  const picking = value !== null;
+  const picking = Array.isArray(value);
   const toggle = (name) =>
     onChange(value.includes(name) ? value.filter((s) => s !== name) : [...value, name]);
 
   return (
-    <fieldset className="field-group field-group--fieldset" data-guide="schools">
-      <legend>Your college</legend>
-      <p className="field-help">
-        Most Maryland scholarships here are only for students at one college. Tell us which
-        colleges you go to or are thinking about, and we&apos;ll hide awards from the others.
+    <fieldset className="field-group field-group--fieldset school-picker" data-guide="schools" id="college">
+      <legend>Pick your college</legend>
+      <p className="school-picker__why">
+        Most scholarships here are only for students at one college. Pick the colleges you go to
+        or are thinking about, so you only see scholarships you can actually get.
       </p>
       <label className="consent-check">
-        <input type="radio" name="school-mode" checked={!picking} onChange={() => onChange(null)} />
-        <span>Not sure yet: show scholarships from every college</span>
-      </label>
-      <label className="consent-check">
-        <input type="radio" name="school-mode" checked={picking} onChange={() => onChange([])} />
-        <span>Only show scholarships for colleges I pick</span>
+        <input type="radio" name="school-mode" required checked={picking} onChange={() => onChange(value ?? [])} />
+        <span>
+          <strong>Show scholarships for the colleges I pick</strong>
+        </span>
       </label>
       {picking && (
         <div className="school-list">
@@ -115,6 +114,10 @@ function SchoolPicker({ value, onChange }) {
           )}
         </div>
       )}
+      <label className="consent-check">
+        <input type="radio" name="school-mode" required checked={value === null} onChange={() => onChange(null)} />
+        <span>I&apos;m not sure yet: show scholarships from every college</span>
+      </label>
     </fieldset>
   );
 }
@@ -153,7 +156,7 @@ export default function ProfileSetup() {
     demographics: [],
     demographics_consent: false,
     interests: [],
-    schools: null,
+    schools: undefined,
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -175,6 +178,13 @@ export default function ProfileSetup() {
     });
   }, [user]);
 
+  // "Pick my college" on Discover links to /profile#college.
+  useEffect(() => {
+    if (window.location.hash !== "#college") return;
+    const t = setTimeout(() => document.getElementById("college")?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+    return () => clearTimeout(t);
+  }, []);
+
   function toggleChip(field, value) {
     setForm((prev) => {
       const list = prev[field];
@@ -194,6 +204,7 @@ export default function ProfileSetup() {
       await updateProfile({
         ...form,
         gpa: form.gpa === "" ? null : Number(form.gpa),
+        schools: form.schools ?? null,
         demographics: form.demographics_consent ? form.demographics : [],
       });
       navigate("/");

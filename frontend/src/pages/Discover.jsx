@@ -115,10 +115,15 @@ export default function Discover() {
       )}
 
       {!loading && !error && user?.schools == null && deck.some((s) => s.school) && (
-        <p className="school-nudge">
-          Most of these are only for students at one college.{" "}
-          <Link to="/profile">Pick your colleges</Link> to hide the rest.
-        </p>
+        <div className="school-banner" role="note">
+          <div>
+            <strong>Pick your college first</strong>
+            <p>Most of these scholarships are only for students at one college. Pick yours to hide the ones you can&apos;t get.</p>
+          </div>
+          <Link className="school-banner__button" to="/profile#college">
+            Pick my college
+          </Link>
+        </div>
       )}
       {!loading && !error && filtered?.hidden_count > 0 && <FilteredNote filtered={filtered} />}
 

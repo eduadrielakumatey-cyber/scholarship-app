@@ -5111,15 +5111,43 @@ body.rich-focus-open {
   opacity: 0.7;
 }
 
-/* "Pick your colleges" nudge on Discover (page background, on-dark tokens). */
-.school-nudge {
-  margin: 0 auto 10px;
+/* "Pick your college first" banner on Discover: the one accent color,
+   a border and no shadow, like the rest of the app. */
+.school-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto 14px;
   max-width: 440px;
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--color-on-dark-soft);
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
 }
-.school-nudge a { color: var(--color-on-dark); font-weight: 600; }
+.school-banner strong { font-size: 1rem; color: var(--accent); }
+.school-banner p { margin: 2px 0 0; font-size: 0.85rem; line-height: 1.3; color: var(--ink); }
+.school-banner__button {
+  flex: none;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.school-banner__button:hover { filter: brightness(1.08); }
+
+/* The college question stands out on the profile page. */
+.school-picker {
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px;
+}
+.school-picker legend { font-weight: 700; padding: 0 6px; }
+.school-picker__why { margin: 0 0 10px; font-size: 0.92rem; }
 
 /* College picker on the profile page. */
 .school-list {
