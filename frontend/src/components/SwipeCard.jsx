@@ -149,7 +149,7 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
           <span className="card-amount">{awardLabel(scholarship)}</span>
           <span className="card-deadline">
             {scholarship.deadline
-              ? `Due ${new Date(scholarship.deadline).toLocaleDateString(undefined, {
+              ? `Due ${new Date(`${scholarship.deadline}T00:00`).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",
                 })}`
