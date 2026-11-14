@@ -14,7 +14,7 @@ export const SITE = {
   mailingAddress: "",
   contactEmail: "eduadrielakumatey@gmail.com",
   governingState: "Maryland",
-  websiteUrl: "https://scholarship-app-ten.vercel.app",
+  websiteUrl: "https://scholarmatch.app",
 };
 
 // Shown as "Last updated" on each policy. Keep in sync with TERMS_VERSION
