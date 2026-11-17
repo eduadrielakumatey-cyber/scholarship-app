@@ -54,11 +54,17 @@ def _active_not_expired_query(today: date):
         db.or_(Scholarship.deadline.is_(None), Scholarship.deadline >= today)
     )
     # ScholarMatch launches in one state (FOCUS_STATE, "MD"): only awards
-    # open to that state's students are shown -- no national or other-state
-    # ones. Nothing is deleted; clearing the setting shows everything again.
+    # open to that state's students are shown -- that state's own plus
+    # national ones (no state limit), never other states' awards. Nothing is
+    # deleted; clearing the setting shows everything again.
     focus = current_app.config.get("FOCUS_STATE")
     if focus:
-        query = query.filter(Scholarship.states.any(focus))
+        query = query.filter(
+            db.or_(
+                Scholarship.states.any(focus),
+                db.func.coalesce(db.func.cardinality(Scholarship.states), 0) == 0,
+            )
+        )
     # Every card says "Essay required" or "No essay"; a listing whose essay
     # requirement hasn't been confirmed from its official page isn't shown.
     query = query.filter(Scholarship.essay_required.isnot(None))

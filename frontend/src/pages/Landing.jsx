@@ -423,7 +423,7 @@ const FAQ = [
   },
   {
     q: "Is it only for Maryland?",
-    a: "Yes, for now. ScholarMatch is just for Maryland students and only lists Maryland scholarships: local clubs, colleges, county funds and state grants, checked every day. We'd rather do one state really well before adding more.",
+    a: "Yes, for now. ScholarMatch is just for Maryland students. It lists Maryland scholarships (local clubs, colleges, county funds and state grants) plus national ones any Maryland student can win, and never shows awards limited to other states. We'd rather do one state really well before adding more.",
   },
   {
     q: "Where do the scholarships come from?",
@@ -490,7 +490,7 @@ export default function Landing() {
           {preview && (
             <p className="landing-note">
               <ShieldCheck size={16} aria-hidden="true" />
-              {preview.live_count} Maryland scholarships open right now. Every link goes to the
+              {preview.live_count} scholarships open to Maryland students right now. Every link goes to the
               provider's own site.
             </p>
           )}
