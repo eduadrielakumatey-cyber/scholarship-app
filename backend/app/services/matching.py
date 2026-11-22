@@ -239,6 +239,10 @@ def _reason_category(reason: str) -> str:
     """Collapse is_eligible()'s specific reasons into a few readable buckets."""
     if reason.startswith("Only for students at"):
         return "Only for students at other colleges"
+    if reason.startswith("Only for students in one county"):
+        return "Local awards (add your county to see them)"
+    if reason.startswith("Only for students in"):
+        return "Only for students in other counties"
     if "GPA" in reason:
         return "GPA below the minimum"
     if "your state" in reason:

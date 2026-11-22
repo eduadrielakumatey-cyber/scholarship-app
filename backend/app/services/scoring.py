@@ -76,6 +76,12 @@ def _grade_level_label(value: str | None) -> str:
 # Layer 1: Hard Eligibility
 # ---------------------------------------------------------------------------
 
+def _county_label(counties: list[str]) -> str:
+    """"Carroll County", "Baltimore City", or "Carroll County or Howard County"."""
+    names = [c if c.endswith(("City", "County")) else f"{c} County" for c in counties]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " or " + names[-1]
+
+
 def is_eligible(user, scholarship) -> tuple[bool, list[str]]:
     """
     Returns (eligible, reasons). `reasons` is empty when eligible, and a
@@ -106,6 +112,17 @@ def is_eligible(user, scholarship) -> tuple[bool, list[str]]:
     picked = getattr(user, "schools", None)
     if school and picked is not None and school not in picked:
         reasons.append(f"Only for students at {school}")
+
+    # County awards (e.g. a county foundation's) are only for that county's
+    # students. Until a student says where they live, these stay hidden --
+    # showing every county's awards to everyone would bury the deck.
+    counties = list(getattr(scholarship, "counties", None) or [])
+    if counties:
+        home = getattr(user, "county", None)
+        if not home:
+            reasons.append("Only for students in one county (add your county to see these)")
+        elif home not in counties:
+            reasons.append(f"Only for students in {_county_label(counties)}")
 
     # Major is only a HARD gate when the scholarship is explicitly flagged
     # as legally/structurally major-restricted. Otherwise a mismatch is a
@@ -378,6 +395,10 @@ def matched_on(user, scholarship) -> list[str]:
     school = getattr(scholarship, "school", None)
     if school and school in (getattr(user, "schools", None) or []):
         chips.append(f"School: {school}")
+
+    home = getattr(user, "county", None)
+    if home and home in (getattr(scholarship, "counties", None) or []):
+        chips.append(f"County: {_county_label([home])}")
 
     shared_demo = _safe_lower_set(scholarship.demographics) & _safe_lower_set(user.demographics)
     for group in sorted(shared_demo)[:2]:

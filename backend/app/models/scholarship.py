@@ -75,6 +75,9 @@ class Scholarship(db.Model):
     # The one college a winner must attend (e.g. an award posted on
     # Salisbury University's own scholarship portal). NULL = any school.
     school = db.Column(db.String(160), nullable=True)
+    # Maryland counties whose students can win (validators.MD_COUNTIES
+    # names), e.g. ["Carroll"] for a county foundation award. [] = any county.
+    counties = db.Column(ARRAY(db.String), nullable=False, default=list, server_default="{}")
 
     # --- Effort / value inputs for the scoring engine ---
     # Estimated hours a typical applicant spends on essays/forms. Defaults to
@@ -200,6 +203,7 @@ class Scholarship(db.Model):
             "interests": self.interests or [],
             "majors_are_hard_requirement": self.majors_are_hard_requirement,
             "school": self.school,
+            "counties": self.counties or [],
             "estimated_hours_to_apply": self.estimated_hours_to_apply,
             "essay_required": self.essay_required,
             "num_awards": self.num_awards,

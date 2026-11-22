@@ -73,7 +73,7 @@ from scraper.link_checker import (
     USER_AGENT,
     check_url,
 )
-from app.utils.validators import GRADE_LEVEL_CODES, US_STATE_CODES, normalize_interests
+from app.utils.validators import GRADE_LEVEL_CODES, MD_COUNTIES, US_STATE_CODES, normalize_interests
 
 logger = logging.getLogger("daily_discovery")
 
@@ -270,6 +270,12 @@ def validate_fields(c: dict, today: date) -> list[str]:
             # A "national" listing whose own description says it's for one
             # place's residents would be shown to students everywhere.
             problems.append(f"states is empty but the description says '{residency}'; set states")
+
+    counties = c.get("counties") or []
+    if not isinstance(counties, list) or any(x not in MD_COUNTIES for x in counties):
+        problems.append(f"unknown Maryland county in {counties}")
+    elif counties and [str(s).upper() for s in states] != ["MD"]:
+        problems.append("counties are Maryland counties, so states must be exactly [\"MD\"]")
 
     demos = c.get("demographics") or []
     if not isinstance(demos, list) or any(d not in ALLOWED_DEMOGRAPHICS for d in demos):
@@ -634,6 +640,8 @@ def school_for(c: dict) -> str | None:
     college's own AcademicWorks portal belongs to that college."""
     if isinstance(c.get("school"), str) and c["school"].strip():
         return c["school"].strip()[:160]
+    if c.get("school") is False:  # explicit: a foundation's portal, not a college's
+        return None
     host = urlparse(c.get("source_url") or "").netloc.lower()
     if host.endswith(".academicworks.com"):
         return (c.get("organization") or "").strip()[:160] or None
@@ -665,6 +673,7 @@ def _build_row(c: dict, batch_source: str, today: date):
         estimated_hours_to_apply=hours,
         essay_required=c["essay_required"],
         school=school_for(c),
+        counties=list(c.get("counties") or []),
         questions=c.get("_questions") or [],
         estimated_applicant_pool=estimate_applicant_pool(amount or 1000.0, c.get("states")),
         num_awards=c.get("num_awards") or 1,

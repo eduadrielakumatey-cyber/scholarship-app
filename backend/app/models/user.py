@@ -39,6 +39,9 @@ class User(db.Model):
     # (nothing hidden); [] = none of the listed ones (every college-only
     # award hidden). Matching hides awards tied to any other college.
     schools = db.Column(ARRAY(db.String), nullable=True)
+    # Home county, one of validators.MD_COUNTIES. NULL = not answered, so
+    # awards limited to one county stay hidden until the student picks.
+    county = db.Column(db.String(40), nullable=True)
 
     # --- Consent records ---
     # When (and to which version of the Terms/Privacy Policy) the student
@@ -87,6 +90,7 @@ class User(db.Model):
             "interests": self.interests or [],
             "major": self.major,
             "schools": self.schools,
+            "county": self.county,
             "profile_complete": self.profile_is_complete(),
             "demographics_consent": self.demographics_consent_at is not None,
         }

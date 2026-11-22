@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { GRADE_LEVELS } from "../constants/gradeLevels.js";
+import { MD_COUNTIES, countyLabel } from "../constants/counties.js";
 import InterestSelector from "../components/InterestSelector.jsx";
 import AccountSettings from "../components/AccountSettings.jsx";
 import LegalFooter from "../components/LegalFooter.jsx";
@@ -157,6 +158,7 @@ export default function ProfileSetup() {
     demographics_consent: false,
     interests: [],
     schools: undefined,
+    county: "",
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -175,13 +177,16 @@ export default function ProfileSetup() {
       demographics_consent: Boolean(user.demographics_consent),
       interests: user.interests || [],
       schools: user.schools ?? null,
+      county: user.county || "",
     });
   }, [user]);
 
-  // "Pick my college" on Discover links to /profile#college.
+  // "Pick my college" / "Add my county" on Discover link to /profile#college
+  // and /profile#county.
   useEffect(() => {
-    if (window.location.hash !== "#college") return;
-    const t = setTimeout(() => document.getElementById("college")?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+    const target = { "#college": "college", "#county": "county" }[window.location.hash];
+    if (!target) return;
+    const t = setTimeout(() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
     return () => clearTimeout(t);
   }, []);
 
@@ -205,6 +210,7 @@ export default function ProfileSetup() {
         ...form,
         gpa: form.gpa === "" ? null : Number(form.gpa),
         schools: form.schools ?? null,
+        county: form.county || null,
         demographics: form.demographics_consent ? form.demographics : [],
       });
       navigate("/");
@@ -278,6 +284,25 @@ export default function ProfileSetup() {
             <option value="MD">Maryland</option>
           </select>
           <p className="field-help">ScholarMatch is just for Maryland students right now.</p>
+        </div>
+
+        <div className="field-group" id="county">
+          <label htmlFor="county-select">County you live in</label>
+          <select
+            id="county-select"
+            value={form.county}
+            onChange={(e) => setForm({ ...form, county: e.target.value })}
+          >
+            <option value="">Choose your county</option>
+            {MD_COUNTIES.map((c) => (
+              <option key={c} value={c}>
+                {countyLabel(c)}
+              </option>
+            ))}
+          </select>
+          <p className="field-help">
+            Unlocks local scholarships from your county's foundations and clubs, where far fewer people apply.
+          </p>
         </div>
 
         <SchoolPicker value={form.schools} onChange={(schools) => setForm((prev) => ({ ...prev, schools }))} />

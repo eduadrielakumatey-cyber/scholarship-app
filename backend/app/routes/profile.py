@@ -15,7 +15,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions import db
 from app.models import Scholarship, User
-from app.utils.validators import is_valid_grade_level, is_valid_state, normalize_interests
+from app.utils.validators import is_valid_county, is_valid_grade_level, is_valid_state, normalize_interests
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/api/profile")
 
@@ -33,6 +33,7 @@ ALLOWED_FIELDS = {
     "interests",
     "major",
     "schools",
+    "county",
 }
 
 
@@ -59,6 +60,11 @@ def update_profile():
     focus = current_app.config.get("FOCUS_STATE")
     if focus and "state" in data and data["state"] and data["state"].strip().upper() != focus:
         return jsonify({"error": "ScholarMatch is only for Maryland students right now"}), 400
+
+    # Home county (Maryland): unlocks awards limited to one county's
+    # students. null = not answered, so county-only awards stay hidden.
+    if "county" in data and data["county"] is not None and not is_valid_county(data["county"]):
+        return jsonify({"error": "county must be a Maryland county or Baltimore City"}), 400
 
     # Colleges the student attends or is considering: null = "not sure yet"
     # (nothing hidden), otherwise a list of names from the school picker.

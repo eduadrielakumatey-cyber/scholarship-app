@@ -18,6 +18,21 @@ def is_valid_state(code: str | None) -> bool:
     return bool(code) and code.strip().upper() in US_STATE_CODES
 
 
+# Maryland's 23 counties plus Baltimore City, spelled the way students and
+# county foundations write them. A scholarship's `counties` and a student's
+# `county` both use exactly these names.
+MD_COUNTIES = (
+    "Allegany", "Anne Arundel", "Baltimore City", "Baltimore County", "Calvert",
+    "Caroline", "Carroll", "Cecil", "Charles", "Dorchester", "Frederick", "Garrett",
+    "Harford", "Howard", "Kent", "Montgomery", "Prince George's", "Queen Anne's",
+    "St. Mary's", "Somerset", "Talbot", "Washington", "Wicomico", "Worcester",
+)
+
+
+def is_valid_county(name: str | None) -> bool:
+    return name in MD_COUNTIES
+
+
 # "12" = high school senior; the rest are college class years. Grades 9-11
 # were dropped as a selectable audience -- product direction is that this
 # app's users are mostly college students, plus HS seniors about to become

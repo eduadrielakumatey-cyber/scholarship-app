@@ -5,6 +5,7 @@ import { Heart, X } from "lucide-react";
 import ScholarshipMetrics from "./ScholarshipMetrics.jsx";
 import { awardLabel } from "../lib/money.js";
 import { gradeLevelLabel } from "../constants/gradeLevels.js";
+import { countyLabel } from "../constants/counties.js";
 
 const SWIPE_THRESHOLD = 110;
 
@@ -102,7 +103,9 @@ export default function SwipeCard({ scholarship, onSwiped, isTop }) {
   if (scholarship.grade_levels && scholarship.grade_levels.length > 0) {
     tags.push(gradeLevelsTag(scholarship.grade_levels));
   }
-  if (scholarship.states && scholarship.states.length === 1) {
+  if (scholarship.counties && scholarship.counties.length > 0) {
+    tags.push(`${scholarship.counties.map(countyLabel).join(" / ")} only`);
+  } else if (scholarship.states && scholarship.states.length === 1) {
     tags.push(`${scholarship.states[0]} only`);
   } else if (scholarship.states && scholarship.states.length > 0) {
     tags.push(scholarship.states.join(", "));

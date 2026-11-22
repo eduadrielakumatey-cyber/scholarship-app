@@ -43,6 +43,11 @@ function FilteredNote({ filtered }) {
   );
 }
 
+// How many county-only awards are hidden because the profile has no county.
+function localHidden(filtered) {
+  return filtered?.reasons?.find((r) => r.label.startsWith("Local awards"))?.count || 0;
+}
+
 export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -122,6 +127,17 @@ export default function Discover() {
           </div>
           <Link className="school-banner__button" to="/profile#college">
             Pick my college
+          </Link>
+        </div>
+      )}
+      {!loading && !error && user?.schools != null && !user?.county && localHidden(filtered) > 0 && (
+        <div className="school-banner" role="note">
+          <div>
+            <strong>{localHidden(filtered)} local scholarships are waiting</strong>
+            <p>Some awards are only for one county&apos;s students. Add yours to see the ones near you.</p>
+          </div>
+          <Link className="school-banner__button" to="/profile#county">
+            Add my county
           </Link>
         </div>
       )}
