@@ -47,6 +47,40 @@ export function clearToken() {
   });
 }
 
+// The free server sleeps when idle and takes up to ~60s to wake. While it
+// wakes, requests fail with a network error ("Failed to fetch") or a
+// 502/503/504 from the host -- none of which reached the app, so they're
+// safe to retry. Keep trying for about 75 seconds before giving up.
+const RETRY_DELAYS_MS = [1500, 3000, 5000, 8000, 12000, 15000, 15000, 15000];
+const WAKING_STATUSES = new Set([502, 503, 504]);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWhileWaking(url, options) {
+  for (let attempt = 0; ; attempt++) {
+    let response;
+    try {
+      response = await fetch(url, options);
+    } catch (err) {
+      if (attempt >= RETRY_DELAYS_MS.length) {
+        throw new Error("Can't reach ScholarMatch right now. Check your connection and try again in a minute.");
+      }
+      await sleep(RETRY_DELAYS_MS[attempt]);
+      continue;
+    }
+    if (WAKING_STATUSES.has(response.status) && attempt < RETRY_DELAYS_MS.length) {
+      await sleep(RETRY_DELAYS_MS[attempt]);
+      continue;
+    }
+    return response;
+  }
+}
+
+// Start waking the server as soon as the site opens, so it's ready by the
+// time the student taps anything.
+export function wakeServer() {
+  fetch(`${BASE_URL}/api/public/preview`).catch(() => {});
+}
+
 async function request(path, { method = "GET", body, auth = true } = {}) {
   const headers = { "Content-Type": "application/json" };
   if (auth) {
@@ -54,7 +88,7 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetchWhileWaking(`${BASE_URL}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,

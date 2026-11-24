@@ -12,8 +12,10 @@ import "@fontsource/libre-franklin/600.css";
 import "@fontsource/libre-franklin/700.css";
 import "./index.css";
 import { setupPwa } from "./pwa.js";
+import { wakeServer } from "./api/client.js";
 
 setupPwa();
+wakeServer();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

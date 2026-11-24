@@ -75,9 +75,15 @@ function guideReaction(field, form, { saving, error, isNewProfile }) {
 // which the required radios block on submit.
 function SchoolPicker({ value, onChange }) {
   const [options, setOptions] = useState(null);
-  useEffect(() => {
-    getSchools().then(setOptions).catch(() => setOptions({ schools: [], any_school_count: 0 }));
-  }, []);
+  const [loadError, setLoadError] = useState(null);
+  const load = () => {
+    setLoadError(null);
+    setOptions(null);
+    getSchools()
+      .then(setOptions)
+      .catch((err) => setLoadError(err.message));
+  };
+  useEffect(load, []);
   const picking = Array.isArray(value);
   const toggle = (name) =>
     onChange(value.includes(name) ? value.filter((s) => s !== name) : [...value, name]);
@@ -97,7 +103,17 @@ function SchoolPicker({ value, onChange }) {
       </label>
       {picking && (
         <div className="school-list">
-          {options === null && <p className="field-help">Loading colleges...</p>}
+          {options === null && !loadError && (
+            <p className="field-help">Loading colleges... (the first load can take up to a minute)</p>
+          )}
+          {loadError && (
+            <p className="error-text" role="alert">
+              Couldn&apos;t load the colleges. {" "}
+              <button type="button" className="text-link-button" onClick={load}>
+                Try again
+              </button>
+            </p>
+          )}
           {options?.schools.map((s) => (
             <label key={s.name} className="consent-check school-option">
               <input type="checkbox" checked={value.includes(s.name)} onChange={() => toggle(s.name)} />
@@ -162,6 +178,13 @@ export default function ProfileSetup() {
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  // True once a save has taken a few seconds: the server is waking up.
+  const [slowSave, setSlowSave] = useState(false);
+  useEffect(() => {
+    if (!saving) return setSlowSave(false);
+    const t = setTimeout(() => setSlowSave(true), 4000);
+    return () => clearTimeout(t);
+  }, [saving]);
   const [activeField, setActiveField] = useState(null);
 
   useEffect(() => {
@@ -397,7 +420,7 @@ export default function ProfileSetup() {
         )}
 
         <button className="primary-button" type="submit" disabled={saving}>
-          {saving ? "Saving..." : isStarting ? "Start swiping" : "Save and find matches"}
+          {saving ? (slowSave ? "Waking up the server..." : "Saving...") : isStarting ? "Start swiping" : "Save and find matches"}
         </button>
       </form>
 
